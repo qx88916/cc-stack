@@ -1,0 +1,154 @@
+---
+description: Admin panel development standards (React/Next.js)
+globs: apps/admin/**/*.{tsx,ts,jsx,js}
+alwaysApply: false
+---
+
+# Admin Panel Standards
+
+## Component Structure
+
+```tsx
+// ✅ GOOD - Admin component with TypeScript
+interface DriverTableProps {
+  drivers: Driver[];
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+export const DriverTable: React.FC<DriverTableProps> = ({ 
+  drivers, 
+  onEdit, 
+  onDelete 
+}) => {
+  return (
+    <DataTable
+      columns={columns}
+      data={drivers}
+      pagination
+      responsive
+    />
+  );
+};
+```
+
+## Form Handling
+
+```tsx
+// ✅ GOOD - Validated form with error handling
+const BookingForm: React.FC = () => {
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(bookingSchema)
+  });
+
+  const onSubmit = async (data: BookingInput) => {
+    try {
+      await api.post('/bookings', data);
+      toast.success('Booking created');
+      router.push('/bookings');
+    } catch (err) {
+      toast.error('Failed to create booking');
+      logger.error('Form submission error', err);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Input 
+        {...register('pickupLocation')} 
+        error={errors.pickupLocation?.message}
+      />
+      <Button type="submit">Create</Button>
+    </form>
+  );
+};
+```
+
+## Data Tables
+
+```tsx
+// ✅ GOOD - Data table with actions and pagination
+const columns = [
+  { field: 'id', headerName: 'ID', width: 100 },
+  { field: 'name', headerName: 'Driver Name', width: 200 },
+  { field: 'phone', headerName: 'Phone', width: 150 },
+  { field: 'status', headerName: 'Status', width: 120,
+    renderCell: (params) => (
+      <StatusBadge status={params.value} />
+    )
+  },
+  { field: 'actions', headerName: 'Actions', width: 150,
+    renderCell: (params) => (
+      <ActionButtons 
+        onEdit={() => handleEdit(params.row.id)}
+        onDelete={() => handleDelete(params.row.id)}
+      />
+    )
+  }
+];
+```
+
+## Dashboard Metrics
+
+```tsx
+// ✅ GOOD - Dashboard card with real-time data
+const MetricsCard: React.FC<{ title: string; value: number }> = ({ 
+  title, 
+  value 
+}) => {
+  const [data, setData] = useState(value);
+  
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const updated = await fetchMetric(title);
+      setData(updated);
+    }, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [title]);
+
+  return (
+    <Card>
+      <CardHeader>{title}</CardHeader>
+      <CardContent>
+        <Typography variant="h3">{data}</Typography>
+      </CardContent>
+    </Card>
+  );
+};
+```
+
+## Role-Based Access
+
+```tsx
+// ✅ GOOD - Protected admin routes
+const ProtectedRoute: React.FC<{ 
+  children: React.ReactNode;
+  requiredRole: 'admin' | 'superadmin';
+}> = ({ children, requiredRole }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) return <LoadingSpinner />;
+  
+  if (!user || user.role !== requiredRole) {
+    return <Navigate to="/unauthorized" />;
+  }
+  
+  return <>{children}</>;
+};
+```
+
+## Required Practices
+
+- Use data tables with sorting/filtering (Material-UI, Ant Design, shadcn/ui)
+- Implement form validation with react-hook-form + Zod
+- Add loading states for all async operations
+- Show success/error toasts for user actions
+- Implement role-based access control (RBAC)
+- Add search and filters for data tables
+- Export data to CSV/Excel functionality
+- Implement audit logs for admin actions
+- Use charts for analytics (Recharts, Chart.js)
+- Optimize large data sets with pagination
+- Add confirmation modals for destructive actions
+- Implement real-time updates where needed (WebSocket/polling)

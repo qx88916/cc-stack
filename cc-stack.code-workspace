@@ -1,0 +1,42 @@
+{
+  "folders": [
+    {
+      "path": ".",
+      "name": "Root"
+    },
+    {
+      "path": "apps/backend",
+      "name": "Backend API"
+    },
+    {
+      "path": "apps/admin",
+      "name": "Admin Panel"
+    },
+    {
+      "path": "apps/passenger",
+      "name": "Passenger App"
+    },
+    {
+      "path": "apps/driver",
+      "name": "Driver App"
+    },
+    {
+      "path": "packages/shared",
+      "name": "Shared Types"
+    },
+    {
+      "path": "docs",
+      "name": "Documentation"
+    }
+  ],
+  "settings": {
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "editor.formatOnSave": true,
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/.expo": true,
+      "**/.next": true,
+      "**/dist": true
+    }
+  }
+}

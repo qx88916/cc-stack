@@ -1,0 +1,96 @@
+diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+index 9fedd7e..ba2fe8f 100644
+--- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
++++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+@@ -1,29 +1,29 @@
+ /* eslint-disable react-native/no-inline-styles */
+ import debounce from 'lodash.debounce';
+ import Qs from 'qs';
+-import uuid from 'react-native-uuid';
+ import React, {
+-  forwardRef,
+-  useMemo,
+-  useEffect,
+-  useImperativeHandle,
+-  useRef,
+-  useState,
+-  useCallback,
++    forwardRef,
++    useCallback,
++    useEffect,
++    useImperativeHandle,
++    useMemo,
++    useRef,
++    useState,
+ } from 'react';
+ import {
+-  ActivityIndicator,
+-  FlatList,
+-  Image,
+-  Keyboard,
+-  Platform,
+-  Pressable,
+-  ScrollView,
+-  StyleSheet,
+-  Text,
+-  TextInput,
+-  View,
++    ActivityIndicator,
++    FlatList,
++    Image,
++    Keyboard,
++    Platform,
++    Pressable,
++    ScrollView,
++    StyleSheet,
++    Text,
++    TextInput,
++    View,
+ } from 'react-native';
++import uuid from 'react-native-uuid';
+ 
+ // ============================================================================
+ // CONSTANTS
+@@ -158,7 +158,7 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+   const prevQueryStringRef = useRef(JSON.stringify(query));
+ 
+   // Store latest _request function - ensures debounced function always calls current version with latest closures
+-  const requestRef = useRef(_request);
++  const requestRef = useRef(null);
+   const queryString = useMemo(() => JSON.stringify(query), [query]);
+ 
+   const [stateText, setStateText] = useState('');
+@@ -351,6 +351,16 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+   // API REQUEST FUNCTIONS
+   // ==========================================================================
+ 
++  const _disableRowLoaders = useCallback(() => {
++    for (let i = 0; i < resultsRef.current.length; i++) {
++      if (resultsRef.current[i].isLoading === true) {
++        resultsRef.current[i].isLoading = false;
++      }
++    }
++
++    setDataSource(buildRowsFromResults(resultsRef.current));
++  }, [buildRowsFromResults]);
++
+   const _requestNearby = useCallback(
+     (latitude, longitude) => {
+       _abortRequests();
+@@ -650,16 +660,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+     }
+   };
+ 
+-  const _disableRowLoaders = useCallback(() => {
+-    for (let i = 0; i < resultsRef.current.length; i++) {
+-      if (resultsRef.current[i].isLoading === true) {
+-        resultsRef.current[i].isLoading = false;
+-      }
+-    }
+-
+-    setDataSource(buildRowsFromResults(resultsRef.current));
+-  }, [buildRowsFromResults]);
+-
+   const _onPress = (rowData) => {
+     if (rowData.isPredefinedPlace !== true && fetchDetails === true) {
+       if (rowData.isLoading === true) {

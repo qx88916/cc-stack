@@ -1,0 +1,72 @@
+---
+description: RESTful API design conventions
+globs: apps/backend/src/routes/**/*.{js,ts}
+alwaysApply: false
+---
+
+# API Design Standards
+
+## Endpoint Naming
+
+```
+✅ GOOD:
+GET    /api/v1/bookings
+POST   /api/v1/bookings
+GET    /api/v1/bookings/:id
+PUT    /api/v1/bookings/:id
+DELETE /api/v1/bookings/:id
+
+❌ BAD:
+GET /getBookings
+POST /createBooking
+GET /booking_detail
+```
+
+## Response Format
+
+```json
+// ✅ GOOD - Consistent structure
+{
+  "success": true,
+  "data": {
+    "id": "123",
+    "status": "confirmed"
+  },
+  "meta": {
+    "timestamp": "2026-02-15T16:00:00Z"
+  }
+}
+
+// ✅ GOOD - Error response
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid phone number",
+    "details": {
+      "field": "phone",
+      "reason": "Must be 7 digits"
+    }
+  }
+}
+```
+
+## Status Codes
+
+- `200` - OK (successful GET/PUT)
+- `201` - Created (successful POST)
+- `204` - No Content (successful DELETE)
+- `400` - Bad Request (validation error)
+- `401` - Unauthorized (not authenticated)
+- `403` - Forbidden (not authorized)
+- `404` - Not Found
+- `429` - Too Many Requests (rate limited)
+- `500` - Internal Server Error
+
+## Required
+
+- Version all APIs (`/api/v1/`)
+- Implement pagination for lists
+- Add rate limiting
+- Return proper HTTP status codes
+- Use consistent error format

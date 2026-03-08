@@ -1,0 +1,68 @@
+Good timing. Let me guide you through deploying your backend to Render with all the security configurations.
+
+## Deploy Backend to Render - Complete Setup
+
+### Step 1: Create Web Service
+
+1. Go to https://dashboard.render.com
+2. Click **New +** → **Web Service**
+3. Connect your GitHub account if not connected
+4. Select repository: `ridehailing-platform/cabconnect-backend`
+5. Configure:
+
+| Setting | Value |
+|---------|-------|
+| **Name** | `cabconnect-backend` |
+| **Region** | Choose closest to your users |
+| **Branch** | `main` |
+| **Root Directory** | Leave blank |
+| **Runtime** | `Node` |
+| **Build Command** | `npm install && npm run build` |
+| **Start Command** | `npm start` |
+| **Plan** | Free (or Starter if you need always-on) |
+
+### Step 2: Add Environment Variables
+
+Before clicking "Create Web Service", scroll down to **Environment Variables** and add these:
+
+```bash
+NODE_ENV=production
+PORT=5000
+JWT_SECRET=e35f6bc89494954634c4a264f43c61a9e16aeccca32ecf09afabab5e3b2578b054cedf237057cafbe8734534fb8171bc8535014082fac82f13ddf2576edaf1f1
+BREVO_API_KEY=<your_new_brevo_key>
+BREVO_SENDER_EMAIL=noreply@fijicabconnect.com
+ALLOWED_ORIGINS=http://localhost:8081,http://localhost:19006
+MONGODB_URI=<see_step_3>
+```
+
+### Step 3: MongoDB Atlas Setup (if you don't have it)
+
+1. Go to https://www.mongodb.com/cloud/atlas
+2. Create free account / log in
+3. Create free cluster (M0)
+4. Database Access → Add user (username/password)
+5. Network Access → Add IP: `0.0.0.0/0` (allow from anywhere)
+6. Clusters → Connect → "Connect your application"
+7. Copy connection string, replace `<password>` with your DB user password
+8. Paste into Render's `MONGODB_URI` environment variable
+
+### Step 4: Deploy
+
+1. Click **Create Web Service**
+2. Render will auto-deploy
+3. Watch logs for:
+   - `✅ JWT_SECRET loaded (128 chars)`
+   - `✅ MongoDB connected`
+   - `✅ Production environment validation passed`
+   - `Server running at http://localhost:5000`
+
+### Step 5: Get Your Backend URL
+
+After deployment succeeds, Render gives you a URL like:
+```
+https://cabconnect-backend.onrender.com
+```
+
+Copy that URL - you'll need it for the passenger app's `EXPO_PUBLIC_API_URL`.
+
+**Want me to wait while you set this up, or should I prepare the next steps?**

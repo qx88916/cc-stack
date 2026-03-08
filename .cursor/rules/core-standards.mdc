@@ -1,0 +1,58 @@
+---
+description: Core coding standards for FijiCabConnect project
+alwaysApply: true
+---
+
+# FijiCabConnect - Core Standards
+
+## 🎯 PROJECT CONTEXT
+FijiCabConnect is a comprehensive cab booking platform for Fiji with driver, passenger, and admin applications.
+
+## 🔐 ZERO TOLERANCE SECURITY
+
+**MANDATORY (NO EXCEPTIONS):**
+
+1. **NEVER** commit secrets, API keys, or credentials
+2. **ALWAYS** use environment variables (`.env` files)
+3. **MANDATORY** input validation on ALL user inputs
+4. **REQUIRED** SQL injection prevention
+5. **ENFORCED** XSS protection with CSP headers
+6. **MANDATORY** CSRF protection on forms
+7. **REQUIRED** Authentication on protected endpoints
+8. **ENFORCED** Rate limiting on APIs
+
+## 💎 CODE QUALITY
+
+**STRICT REQUIREMENTS:**
+
+- **TypeScript Strict Mode** - Zero `any` types
+- **Absolute imports only** - `@/components`, not `../../`
+- **Zero TypeScript errors** - Must pass `tsc --noEmit`
+- **Zero ESLint errors** - Project ESLint compliance
+- **No temporary fixes** - Production-ready solutions only
+- **DO NOT modify** `tsconfig.json`, `next.config.js` without permission
+
+## 🏗️ FUNDAMENTAL PRINCIPLES
+
+- **DRY** - Don't Repeat Yourself
+- **KISS** - Keep It Simple
+- **SOLID** - Single Responsibility, Open/Closed, etc.
+- **YAGNI** - You Aren't Gonna Need It
+- **Fail Fast** - Validate early, throw immediately
+- **Immutability** - Prefer immutable data structures
+
+## 📱 RESPONSIVE DESIGN
+
+- **Mobile-First** - Design for 320px+, enhance up
+- **Breakpoints:** 320px (mobile), 768px (tablet), 1024px (desktop)
+- **Touch Targets:** Minimum 44px for interactive elements
+- **Test ALL breakpoints** before marking complete
+
+## 🚫 NEVER ALLOWED
+
+- Mock/static data - use real backend
+- Relative imports - absolute only
+- `any` types - strict typing required
+- Hardcoded values - use environment variables
+- Unvalidated inputs - validate everything
+- Missing error boundaries - required on components

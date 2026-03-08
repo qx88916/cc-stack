@@ -1,0 +1,61 @@
+---
+description: Node.js backend development standards
+globs: apps/backend/**/*.{js,ts}
+alwaysApply: false
+---
+
+# Backend Standards (Node.js)
+
+## Error Handling
+
+```typescript
+// ❌ BAD - Silent failure
+try {
+  await dbQuery();
+} catch (e) {}
+
+// ✅ GOOD - Proper logging and user-friendly error
+try {
+  await dbQuery();
+} catch (e) {
+  logger.error('Database query failed', { error: e });
+  throw new DatabaseError('Unable to fetch data', { cause: e });
+}
+```
+
+## Input Validation
+
+```typescript
+// ❌ BAD - No validation
+app.post('/api/booking', async (req, res) => {
+  const booking = await createBooking(req.body);
+  res.json(booking);
+});
+
+// ✅ GOOD - Validated inputs
+app.post('/api/booking', validate(bookingSchema), async (req, res) => {
+  const sanitized = sanitizeInput(req.body);
+  const booking = await createBooking(sanitized);
+  res.json(booking);
+});
+```
+
+## Environment Variables
+
+```typescript
+// ❌ BAD - Hardcoded
+const apiKey = 'sk_live_12345';
+
+// ✅ GOOD - Environment variable with validation
+const apiKey = process.env.API_KEY;
+if (!apiKey) throw new Error('API_KEY not configured');
+```
+
+## Required Practices
+
+- Use async/await over callbacks
+- Implement proper logging (Winston, Pino)
+- Rate limiting on all public endpoints
+- JWT token validation on protected routes
+- Database connection pooling
+- Graceful shutdown handlers

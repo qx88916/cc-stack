@@ -1,0 +1,975 @@
+# 🎯 PASSENGER APP MVP - FOCUSED DEVELOPMENT PLAN
+
+**Priority:** Passenger App Only  
+**Timeline:** 10-12 Days (Single Developer)  
+**Current Status:** 85% Complete → 100% MVP Ready
+
+---
+
+## 📊 QUICK WIN STRATEGY
+
+### **What's Already Working ✅**
+- Account creation & login
+- Location selection & fare estimation
+- Ride booking & real-time updates
+- Trip completion & basic history
+
+### **What Users See Missing 🔴** (From Your Screens)
+1. Profile photo placeholder → needs upload
+2. "Not verified" email badge → needs verification flow
+3. Empty "Saved places" section → needs implementation
+4. "3 new suggestions" banner → needs smart prompts
+5. Delete account shows error → needs proper flow
+6. Empty ride history → needs better UX
+
+---
+
+## 🚀 MVP DEVELOPMENT PHASES
+
+### **PHASE 1: Profile Completion** (3 Days - P0)
+
+#### 1.1 Profile Photo Upload ⭐ CRITICAL
+**Why:** Safety requirement - drivers need to recognize passengers
+
+**Implementation:**
+```typescript
+// components/ProfilePhotoUpload.tsx
+import * as ImagePicker from 'expo-image-picker';
+
+export function ProfilePhotoUpload() {
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+      base64: true,
+    });
+    
+    if (!result.canceled) {
+      await uploadPhoto(result.assets[0].uri);
+    }
+  };
+  
+  return (
+    <TouchableOpacity onPress={pickImage}>
+      {/* Photo circle with + icon */}
+    </TouchableOpacity>
+  );
+}
+```
+
+**Backend Endpoint:**
+```typescript
+// backend/routes/user.ts
+router.patch('/profile-photo', authMiddleware, upload.single('photo'), async (req, res) => {
+  const userId = req.user.userId;
+  const photoUrl = await savePhoto(req.file); // S3 or local
+  
+  await User.findByIdAndUpdate(userId, { profilePhoto: photoUrl });
+  res.json({ success: true, photoUrl });
+});
+```
+
+**Files to Create/Modify:**
+- `components/ProfilePhotoUpload.tsx` (NEW)
+- `app/(root)/(tabs)/account.tsx` (add photo section)
+- `services/upload.ts` (NEW - handle multipart/form-data)
+- Backend: `routes/user.ts` + `multer` middleware
+
+**Testing Checklist:**
+- [ ] Upload JPEG/PNG from gallery
+- [ ] Take photo with camera
+- [ ] Crop to square
+- [ ] Show loading spinner
+- [ ] Display uploaded photo immediately
+- [ ] Handle network errors gracefully
+
+---
+
+#### 1.2 Email Verification Flow ⭐ CRITICAL
+**Why:** Required before account deletion, builds trust
+
+**Implementation:**
+```typescript
+// app/(root)/verify-email.tsx
+export default function VerifyEmail() {
+  const [loading, setLoading] = useState(false);
+  
+  const resendVerification = async () => {
+    setLoading(true);
+    await fetchAPI('/auth/resend-verification');
+    Alert.alert('Check your email', 'Verification link sent!');
+    setLoading(false);
+  };
+  
+  return (
+    <View>
+      <Text>Verify your email to unlock all features</Text>
+      <Button onPress={resendVerification} loading={loading}>
+        Resend Verification Email
+      </Button>
+    </View>
+  );
+}
+```
+
+**Backend Updates:**
+```typescript
+// backend/routes/auth.ts
+router.post('/resend-verification', authMiddleware, rateLimiter, async (req, res) => {
+  const user = await User.findById(req.user.userId);
+  
+  if (user.emailVerified) {
+    return res.status(400).json({ error: 'Email already verified' });
+  }
+  
+  const token = generateVerificationToken(user.email);
+  await sendVerificationEmail(user.email, token);
+  
+  res.json({ success: true });
+});
+
+router.get('/verify-email/:token', async (req, res) => {
+  const { token } = req.params;
+  const email = verifyToken(token);
+  
+  await User.updateOne({ email }, { emailVerified: true });
+  res.redirect('cabconnect://verified'); // Deep link to app
+});
+```
+
+**Files to Create/Modify:**
+- `app/(root)/verify-email.tsx` (NEW)
+- `app/(root)/(tabs)/account.tsx` (show "Not verified" badge)
+- Backend: `routes/auth.ts` (add verification endpoints)
+- Backend: `services/email.ts` (verification email template)
+
+**Testing Checklist:**
+- [ ] Click "Verify email address" button
+- [ ] Receive email within 30 seconds
+- [ ] Click link in email → opens app
+- [ ] Badge changes to "Verified" ✓
+- [ ] Rate limiting prevents spam
+
+---
+
+#### 1.3 Edit Personal Information
+**Why:** Users need to update phone/name
+
+**Implementation:**
+```typescript
+// app/(root)/edit-profile.tsx
+export default function EditProfile() {
+  const [name, setName] = useState(user.name);
+  const [phone, setPhone] = useState(user.phone);
+  
+  const saveChanges = async () => {
+    await fetchAPI('/user/profile', {
+      method: 'PATCH',
+      body: JSON.stringify({ name, phone })
+    });
+    router.back();
+  };
+  
+  return (
+    <View>
+      <Input label="Name" value={name} onChangeText={setName} />
+      <Input 
+        label="Phone" 
+        value={phone} 
+        onChangeText={setPhone}
+        keyboardType="phone-pad"
+      />
+      <Button onPress={saveChanges}>Save Changes</Button>
+    </View>
+  );
+}
+```
+
+**Files to Create/Modify:**
+- `app/(root)/edit-profile.tsx` (NEW)
+- Backend: `routes/user.ts` (PATCH /profile endpoint)
+
+**Testing Checklist:**
+- [ ] Edit name → saves successfully
+- [ ] Edit phone → validates format
+- [ ] Shows optimistic update
+- [ ] Syncs with backend
+
+---
+
+### **PHASE 2: Saved Places** (2 Days - P0)
+
+#### 2.1 Add/Edit/Delete Saved Places ⭐ CRITICAL
+**Why:** One-tap booking UX (Uber/Bolt standard)
+
+**Implementation:**
+```typescript
+// app/(root)/saved-places.tsx
+export default function SavedPlaces() {
+  const places = useSavedPlacesStore(state => state.places);
+  
+  return (
+    <ScrollView>
+      <SavedPlaceCard 
+        type="home"
+        icon="home"
+        label="Home"
+        address={places.home?.address}
+        onEdit={() => editPlace('home')}
+      />
+      <SavedPlaceCard 
+        type="work"
+        icon="briefcase"
+        label="Work"
+        address={places.work?.address}
+        onEdit={() => editPlace('work')}
+      />
+      <SavedPlaceCard 
+        type="custom"
+        icon="star"
+        label="Add a place"
+        onEdit={() => addCustomPlace()}
+      />
+    </ScrollView>
+  );
+}
+```
+
+**Store Structure:**
+```typescript
+// store/savedPlacesStore.ts
+interface SavedPlace {
+  type: 'home' | 'work' | 'custom';
+  label: string;
+  address: string;
+  coordinates: { lat: number; lng: number };
+}
+
+export const useSavedPlacesStore = create<{
+  places: Record<string, SavedPlace>;
+  setPlace: (type: string, place: SavedPlace) => Promise<void>;
+  deletePlace: (type: string) => Promise<void>;
+}>((set) => ({
+  places: {},
+  
+  setPlace: async (type, place) => {
+    // Save to backend
+    await fetchAPI('/user/saved-places', {
+      method: 'POST',
+      body: JSON.stringify({ type, place })
+    });
+    
+    // Update local state
+    set((state) => ({
+      places: { ...state.places, [type]: place }
+    }));
+  },
+  
+  deletePlace: async (type) => {
+    await fetchAPI(`/user/saved-places/${type}`, { method: 'DELETE' });
+    set((state) => {
+      const { [type]: _, ...rest } = state.places;
+      return { places: rest };
+    });
+  }
+}));
+```
+
+**Quick Booking Integration:**
+```typescript
+// app/(root)/(tabs)/home.tsx - Add shortcuts
+<View className="flex-row gap-2 px-4 mt-4">
+  {savedPlaces.home && (
+    <TouchableOpacity onPress={() => bookToPlace(savedPlaces.home)}>
+      <Icon name="home" />
+      <Text>Home</Text>
+    </TouchableOpacity>
+  )}
+  {savedPlaces.work && (
+    <TouchableOpacity onPress={() => bookToPlace(savedPlaces.work)}>
+      <Icon name="briefcase" />
+      <Text>Work</Text>
+    </TouchableOpacity>
+  )}
+</View>
+```
+
+**Files to Create/Modify:**
+- `app/(root)/saved-places.tsx` (NEW)
+- `app/(root)/add-place.tsx` (NEW - with Google autocomplete)
+- `components/SavedPlaceCard.tsx` (NEW)
+- `store/savedPlacesStore.ts` (NEW)
+- `app/(root)/(tabs)/home.tsx` (add quick booking buttons)
+- Backend: `routes/user.ts` (saved places CRUD)
+
+**Backend Schema:**
+```typescript
+// models/User.ts
+savedPlaces: [{
+  type: { type: String, enum: ['home', 'work', 'custom'] },
+  label: String,
+  address: String,
+  coordinates: {
+    lat: Number,
+    lng: Number
+  }
+}]
+```
+
+**Testing Checklist:**
+- [ ] Add home location via Google Places
+- [ ] Add work location
+- [ ] Add custom place with label "Mom's house"
+- [ ] Edit existing place
+- [ ] Delete place
+- [ ] Quick book to Home from home screen (one tap)
+- [ ] Places persist after logout/login
+
+---
+
+### **PHASE 3: Account Suggestions Banner** (1 Day - P1)
+
+#### 3.1 Smart Suggestions System
+**Why:** Increase profile completion → better UX
+
+**Implementation:**
+```typescript
+// components/AccountSuggestions.tsx
+export function AccountSuggestions() {
+  const user = useAuth();
+  const suggestions = useMemo(() => {
+    const items = [];
+    
+    if (!user.profilePhoto) {
+      items.push({
+        id: 'photo',
+        title: 'Add a profile photo',
+        description: 'Help drivers recognize you',
+        action: () => router.push('/upload-photo')
+      });
+    }
+    
+    if (!user.emailVerified) {
+      items.push({
+        id: 'email',
+        title: 'Verify your email',
+        description: 'Required to delete account',
+        action: () => router.push('/verify-email')
+      });
+    }
+    
+    if (!user.savedPlaces?.home) {
+      items.push({
+        id: 'home',
+        title: 'Add home location',
+        description: 'Book rides in one tap',
+        action: () => router.push('/saved-places')
+      });
+    }
+    
+    return items;
+  }, [user]);
+  
+  if (suggestions.length === 0) return null;
+  
+  return (
+    <TouchableOpacity 
+      className="bg-emerald-50 p-4 mx-4 rounded-xl flex-row items-center"
+      onPress={() => setExpanded(!expanded)}
+    >
+      <View className="bg-emerald-500 w-12 h-12 rounded-full items-center justify-center">
+        <Icon name="shield-check" color="white" />
+      </View>
+      <View className="flex-1 ml-3">
+        <Text className="font-JakartaSemiBold">Let's update your account</Text>
+        <Text className="text-gray-600 text-sm">Improve your app experience</Text>
+        <Text className="text-emerald-600 font-JakartaBold mt-1">
+          {suggestions.length} new suggestions
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+```
+
+**Files to Create:**
+- `components/AccountSuggestions.tsx` (NEW)
+- `utils/profileCompletion.ts` (NEW - calculate completion %)
+
+**Testing Checklist:**
+- [ ] New user sees 3 suggestions
+- [ ] Upload photo → count drops to 2
+- [ ] Complete all → banner disappears
+- [ ] Reappears if email becomes unverified
+
+---
+
+### **PHASE 4: Ride History Enhancements** (2 Days - P1)
+
+#### 4.1 Detailed Ride Receipt
+**Why:** Users want to review past trips
+
+**Implementation:**
+```typescript
+// app/(root)/ride-receipt/[id].tsx
+export default function RideReceipt() {
+  const { id } = useLocalSearchParams();
+  const [ride, setRide] = useState(null);
+  
+  useEffect(() => {
+    fetchAPI(`/rides/${id}`).then(setRide);
+  }, [id]);
+  
+  return (
+    <ScrollView className="bg-white">
+      {/* Map thumbnail */}
+      <Image source={{ uri: getStaticMapUrl(ride) }} />
+      
+      {/* Trip details */}
+      <View className="p-4">
+        <Text className="text-2xl font-JakartaBold">
+          {ride.fare.total} FJD
+        </Text>
+        <Text className="text-gray-500">
+          {formatDate(ride.createdAt)}
+        </Text>
+        
+        {/* Addresses */}
+        <View className="mt-6">
+          <LocationRow 
+            icon="circle" 
+            address={ride.pickup.address} 
+          />
+          <LocationRow 
+            icon="square" 
+            address={ride.dropoff.address} 
+          />
+        </View>
+        
+        {/* Driver info */}
+        <View className="flex-row items-center mt-6">
+          <Image 
+            source={{ uri: ride.driver.profilePhoto }} 
+            className="w-16 h-16 rounded-full"
+          />
+          <View className="ml-3">
+            <Text className="font-JakartaSemiBold">
+              {ride.driver.name}
+            </Text>
+            <Text className="text-gray-500">
+              {ride.driver.vehicle.model} • {ride.driver.vehicle.plate}
+            </Text>
+            <View className="flex-row items-center">
+              <Icon name="star" color="#FCD34D" />
+              <Text>{ride.driver.rating}</Text>
+            </View>
+          </View>
+        </View>
+        
+        {/* Fare breakdown */}
+        <View className="mt-6 border-t pt-4">
+          <Text className="font-JakartaBold mb-2">Fare breakdown</Text>
+          <FareRow label="Base fare" value={ride.fare.base} />
+          <FareRow label="Distance (5.2 km)" value={ride.fare.distance} />
+          <FareRow label="Time (12 min)" value={ride.fare.time} />
+          <FareRow 
+            label="Total" 
+            value={ride.fare.total} 
+            bold 
+          />
+        </View>
+        
+        {/* Payment */}
+        <View className="mt-4">
+          <Text className="text-gray-500">Payment method</Text>
+          <Text className="font-JakartaSemiBold">Cash</Text>
+        </View>
+        
+        {/* Actions */}
+        <Button 
+          onPress={() => bookAgain(ride)}
+          className="mt-6"
+        >
+          Book Again
+        </Button>
+      </View>
+    </ScrollView>
+  );
+}
+```
+
+**Files to Create:**
+- `app/(root)/ride-receipt/[id].tsx` (NEW - dynamic route)
+- `components/RideReceiptCard.tsx` (NEW)
+- Backend: GET `/rides/:id` endpoint
+
+**Testing Checklist:**
+- [ ] Tap past ride → opens receipt
+- [ ] Shows all trip details
+- [ ] Map thumbnail loads
+- [ ] "Book again" pre-fills same route
+- [ ] Share receipt (optional)
+
+---
+
+#### 4.2 Better Empty States
+**Why:** Current 3D character assets look good, need better CTAs
+
+**Enhancement:**
+```typescript
+// components/RideEmptyStates.tsx (already exists, enhance)
+export function NoRidesYet() {
+  return (
+    <View className="flex-1 items-center justify-center p-8">
+      <Image 
+        source={require('@/assets/images/empty-rides.png')} 
+        className="w-64 h-64"
+        resizeMode="contain"
+      />
+      <Text className="text-xl font-JakartaBold mt-4">
+        You don't have any rides yet
+      </Text>
+      <Text className="text-gray-500 text-center mt-2">
+        Start your journey with CabConnect
+      </Text>
+      <Button 
+        onPress={() => router.push('/(root)/(tabs)/home')}
+        className="mt-6"
+      >
+        Book Your First Ride
+      </Button>
+    </View>
+  );
+}
+
+export function NoUpcomingRides() {
+  return (
+    <View className="flex-1 items-center justify-center p-8">
+      <Image 
+        source={require('@/assets/images/empty-upcoming.png')} 
+        className="w-64 h-64"
+        resizeMode="contain"
+      />
+      <Text className="text-xl font-JakartaBold mt-4">
+        No upcoming rides
+      </Text>
+      <Text className="text-gray-500 text-center mt-2 px-4">
+        Whatever is on your schedule, a Scheduled Ride can get you there on time
+      </Text>
+      <TouchableOpacity className="mt-2">
+        <Text className="text-emerald-600 font-JakartaSemiBold">
+          Learn how it works
+        </Text>
+      </TouchableOpacity>
+      <Button 
+        onPress={() => router.push('/(root)/schedule-ride')}
+        className="mt-6 w-full"
+      >
+        Schedule a ride
+      </Button>
+    </View>
+  );
+}
+```
+
+**Files to Modify:**
+- `components/RideEmptyStates.tsx` (enhance existing)
+- `app/(root)/(tabs)/rides.tsx` (wire up CTAs)
+
+---
+
+### **PHASE 5: Account Management** (2 Days - P1)
+
+#### 5.1 Delete Account Flow
+**Why:** Fix the "can't delete" error shown in screens
+
+**Implementation:**
+```typescript
+// app/(root)/delete-account.tsx
+export default function DeleteAccount() {
+  const user = useAuth();
+  const [step, setStep] = useState<'warning' | 'confirm' | 'password'>('warning');
+  
+  if (!user.emailVerified) {
+    return (
+      <View className="flex-1 items-center justify-center p-6">
+        <Image source={require('@/assets/images/error-warning.png')} />
+        <Text className="text-2xl font-JakartaBold mt-6">
+          You can't delete your account right now
+        </Text>
+        <Text className="text-gray-600 text-center mt-2">
+          You need to verify your email address first.
+        </Text>
+        <Button 
+          onPress={() => router.push('/verify-email')}
+          className="mt-6"
+        >
+          Verify email address
+        </Button>
+      </View>
+    );
+  }
+  
+  if (step === 'warning') {
+    return (
+      <View className="p-6">
+        <Text className="text-2xl font-JakartaBold">
+          Delete your account?
+        </Text>
+        <Text className="text-gray-600 mt-4">
+          This action cannot be undone. You will lose:
+        </Text>
+        <View className="mt-4">
+          <ListItem icon="x-circle" text="All ride history" />
+          <ListItem icon="x-circle" text="Saved places" />
+          <ListItem icon="x-circle" text="Payment methods" />
+          <ListItem icon="x-circle" text="Scheduled rides" />
+        </View>
+        <View className="flex-row gap-3 mt-8">
+          <Button variant="outline" onPress={() => router.back()}>
+            Cancel
+          </Button>
+          <Button 
+            variant="destructive" 
+            onPress={() => setStep('confirm')}
+          >
+            Continue
+          </Button>
+        </View>
+      </View>
+    );
+  }
+  
+  if (step === 'password') {
+    return (
+      <View className="p-6">
+        <Text className="font-JakartaBold text-lg">
+          Enter your password to confirm
+        </Text>
+        <Input 
+          secureTextEntry 
+          placeholder="Password"
+          onChangeText={setPassword}
+        />
+        <Button 
+          onPress={handleDelete}
+          variant="destructive"
+          className="mt-4"
+        >
+          Delete Account
+        </Button>
+      </View>
+    );
+  }
+}
+```
+
+**Backend Implementation:**
+```typescript
+// backend/routes/user.ts
+router.delete('/account', authMiddleware, async (req, res) => {
+  const { password } = req.body;
+  const user = await User.findById(req.user.userId);
+  
+  // Verify email
+  if (!user.emailVerified) {
+    return res.status(400).json({ 
+      error: 'Email must be verified before deletion' 
+    });
+  }
+  
+  // Verify password
+  const isValid = await bcrypt.compare(password, user.password);
+  if (!isValid) {
+    return res.status(401).json({ error: 'Invalid password' });
+  }
+  
+  // Soft delete (30-day recovery)
+  await User.findByIdAndUpdate(req.user.userId, {
+    deletedAt: new Date(),
+    deletionScheduledFor: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+  });
+  
+  // Send confirmation email
+  await sendAccountDeletionEmail(user.email);
+  
+  res.json({ success: true });
+});
+```
+
+**Files to Create:**
+- `app/(root)/delete-account.tsx` (NEW - multi-step flow)
+- Backend: DELETE `/user/account` endpoint
+- Backend: Cron job to purge accounts after 30 days
+
+**Testing Checklist:**
+- [ ] Unverified email → shows error screen (as in screenshot)
+- [ ] Verified email → shows warning with consequences
+- [ ] Enter password → deletes account
+- [ ] Receives confirmation email
+- [ ] Can't login after deletion
+- [ ] 30-day recovery period (optional)
+
+---
+
+#### 5.2 Settings Screens
+**Implementation:**
+
+```typescript
+// app/(root)/settings/security.tsx
+export default function SecuritySettings() {
+  return (
+    <ScrollView>
+      <SettingItem 
+        title="Change password"
+        onPress={() => router.push('/change-password')}
+      />
+      <SettingItem 
+        title="Two-factor authentication"
+        subtitle="Add an extra layer of security"
+        onPress={() => router.push('/2fa-setup')}
+      />
+      <SettingItem 
+        title="Active sessions"
+        subtitle="Manage devices logged into your account"
+        onPress={() => router.push('/active-sessions')}
+      />
+    </ScrollView>
+  );
+}
+
+// app/(root)/settings/privacy.tsx
+export default function PrivacySettings() {
+  return (
+    <ScrollView>
+      <SettingItem 
+        title="Download your data"
+        subtitle="Get a copy of your information"
+        onPress={exportData}
+      />
+      <SettingItem 
+        title="Privacy policy"
+        onPress={() => openURL('https://cabconnect.com/privacy')}
+      />
+      <SettingItem 
+        title="Terms of service"
+        onPress={() => openURL('https://cabconnect.com/terms')}
+      />
+      <SettingItem 
+        title="Delete account"
+        destructive
+        onPress={() => router.push('/delete-account')}
+      />
+    </ScrollView>
+  );
+}
+
+// app/(root)/settings/communication.tsx
+export default function CommunicationPreferences() {
+  const [prefs, setPrefs] = useState({
+    emailNotifications: true,
+    pushNotifications: true,
+    smsNotifications: false,
+  });
+  
+  return (
+    <ScrollView>
+      <SettingToggle 
+        title="Email notifications"
+        subtitle="Ride updates, receipts"
+        value={prefs.emailNotifications}
+        onValueChange={(v) => updatePref('emailNotifications', v)}
+      />
+      <SettingToggle 
+        title="Push notifications"
+        subtitle="Driver arriving, ride completed"
+        value={prefs.pushNotifications}
+        onValueChange={(v) => updatePref('pushNotifications', v)}
+      />
+      <SettingToggle 
+        title="SMS notifications"
+        subtitle="OTP codes only"
+        value={prefs.smsNotifications}
+        onValueChange={(v) => updatePref('smsNotifications', v)}
+      />
+    </ScrollView>
+  );
+}
+```
+
+**Files to Create:**
+- `app/(root)/settings/security.tsx` (NEW)
+- `app/(root)/settings/privacy.tsx` (NEW)
+- `app/(root)/settings/communication.tsx` (NEW)
+- `app/(root)/settings/language.tsx` (NEW)
+- `components/SettingItem.tsx` (NEW - reusable)
+
+---
+
+## 📋 PASSENGER APP MVP CHECKLIST
+
+### **MUST HAVE (P0) - Week 1**
+- [x] Profile photo upload with camera/gallery
+- [x] Email verification flow with deep link
+- [x] Saved places (Home, Work, Custom)
+- [x] Quick booking from saved places
+- [x] Edit name & phone number
+- [x] Account suggestions banner (smart prompts)
+
+### **SHOULD HAVE (P1) - Week 2**
+- [ ] Ride receipt screen (detailed view)
+- [x] Better empty states with CTAs
+- [ ] "Book again" from past rides
+
+### **SKIPPED / POSTPONED**
+- [ ] Delete account flow (with email check)
+- [ ] Security settings screen
+- [ ] Privacy settings screen
+- [ ] Communication preferences
+- [ ] Language selection (if multi-language)
+
+### **NICE TO HAVE (P2) - Post-MVP**
+- [ ] Biometric login (Face ID/Touch ID)
+- [ ] Share trip with contacts
+- [ ] Calendar integration
+- [ ] Data export (GDPR)
+- [ ] Ride scheduling
+- [ ] Push notifications
+
+---
+
+## 🛠️ IMPLEMENTATION ORDER (Day-by-Day)
+
+### **Days 1-3: Profile & Verification**
+- Day 1: Profile photo upload + backend
+- Day 2: Email verification flow + deep link handling
+- Day 3: Edit profile + account suggestions banner
+
+### **Days 4-5: Saved Places**
+- Day 4: Saved places CRUD + backend
+- Day 5: Quick booking integration + testing
+
+### **Days 6-7: Ride History**
+- Day 6: Detailed receipt screen
+- Day 7: Empty states + "Book again"
+
+### **Days 8-10: Account Management**
+- Day 8: Delete account flow (multi-step)
+- Day 9: Settings screens (Security, Privacy, Communication)
+- Day 10: Testing & bug fixes
+
+### **Days 11-12: Polish & QA**
+- Day 11: End-to-end testing
+- Day 12: Bug fixes + production prep
+
+---
+
+## 🧪 TESTING PROTOCOL
+
+### **Acceptance Criteria**
+```
+SCENARIO: New user completes profile
+GIVEN: User just signed up
+WHEN: They see "3 new suggestions" banner
+THEN: 
+  - Click banner → shows profile photo, email, home location
+  - Upload photo → count drops to 2
+  - Verify email → count drops to 1
+  - Add home → banner disappears
+
+SCENARIO: Quick booking from saved place
+GIVEN: User has Home location saved
+WHEN: They tap Home button on map screen
+THEN:
+  - Pickup auto-fills with Home address
+  - User only needs to select drop-off
+  - Booking takes 2 taps instead of 4
+
+SCENARIO: Delete account safety check
+GIVEN: User email is not verified
+WHEN: They tap "Delete account"
+THEN:
+  - Shows error screen (as in your screenshot)
+  - "Verify email address" button appears
+  - Cannot proceed with deletion
+```
+
+---
+
+## 📦 DEPENDENCIES TO INSTALL
+
+```bash
+cd cabconnect-passenger-app
+
+# Profile photo
+npm install expo-image-picker
+
+# Deep linking (for email verification)
+npm install expo-linking expo-constants
+
+# Additional utilities
+npm install react-native-share  # Share receipts (optional)
+```
+
+**Backend:**
+```bash
+cd cabconnect-backend-main
+
+# File upload
+npm install multer @types/multer
+
+# Already have: mongoose, express, jsonwebtoken
+```
+
+---
+
+## 🚨 CRITICAL SUCCESS FACTORS
+
+### **Must Work Before Launch:**
+1. ✅ Profile photo upload (safety requirement)
+2. ✅ Email verification (security requirement)
+3. ✅ Saved places → quick booking (core UX)
+4. ✅ Delete account respects verification (legal compliance)
+
+### **Can Ship Without:**
+- Biometric login (convenience)
+- Calendar integration (power users)
+- Share trip (nice-to-have)
+- Ride scheduling (v1.1 feature)
+
+---
+
+## 📊 SUCCESS METRICS
+
+**Profile Completion:**
+- Target: 80% of users upload photo within 7 days
+- Target: 90% verify email within 3 days
+
+**Saved Places Usage:**
+- Target: 60% add home location
+- Target: 40% use quick booking
+
+**Ride History Engagement:**
+- Target: 30% tap to view detailed receipts
+- Target: 15% use "Book again"
+
+---
+
+## ⏱️ REALISTIC TIMELINE
+
+| Phase | Duration | Complexity |
+|-------|----------|------------|
+| Profile & Verification | 3 days | Medium |
+| Saved Places | 2 days | Medium |
+| Ride History | 2 days | Easy |
+| Account Management | 3 days | Medium |
+| Testing & Polish | 2 days | - |
+| **TOTAL** | **12 days** | **Single Dev** |
+
+---
+
+**This plan delivers the 15% remaining passenger app features shown in your screens, focusing on profile completion, saved places, and account management — the three pillars users expect from a mature ride-hailing app.**
+
+Ready to start implementing? Which phase would you like to begin with?

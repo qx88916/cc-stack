@@ -1,0 +1,20 @@
+{
+  "name": "cabconnect",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CabConnect - Fiji Ride-Hailing Platform",
+  "scripts": {
+    "dev:backend": "cd apps/backend && npm run dev",
+    "dev:admin": "cd apps/admin && npm run dev",
+    "dev:passenger": "cd apps/passenger && npx expo start",
+    "dev:driver": "cd apps/driver && npx expo start",
+    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:admin\"",
+    "install:all": "cd apps/backend && npm install && cd ../admin && npm install && cd ../passenger && npm install && cd ../driver && npm install",
+    "build:backend": "cd apps/backend && npm run build",
+    "build:admin": "cd apps/admin && npm run build",
+    "seed:admin": "cd apps/backend && npx ts-node scripts/seed-admin.ts"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

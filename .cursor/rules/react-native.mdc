@@ -1,0 +1,70 @@
+---
+description: React Native standards for passenger app
+globs: apps/passenger/**/*.{tsx,ts,jsx,js}
+alwaysApply: false
+---
+
+# React Native Standards
+
+## Component Structure
+
+```tsx
+// ✅ GOOD - Functional component with TypeScript
+interface BookingCardProps {
+  booking: Booking;
+  onPress: (id: string) => void;
+}
+
+export const BookingCard: React.FC<BookingCardProps> = ({ 
+  booking, 
+  onPress 
+}) => {
+  return (
+    <Pressable onPress={() => onPress(booking.id)}>
+      <Text>{booking.destination}</Text>
+    </Pressable>
+  );
+};
+```
+
+## State Management
+
+```tsx
+// ❌ BAD - Direct state mutation
+user.name = 'New Name';
+
+// ✅ GOOD - Immutable update
+setUser(prev => ({ ...prev, name: 'New Name' }));
+```
+
+## API Calls
+
+```tsx
+// ✅ GOOD - Error handling + loading states
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string | null>(null);
+
+const fetchData = async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const data = await api.get('/bookings');
+    setBookings(data);
+  } catch (err) {
+    setError('Failed to load bookings');
+    logger.error('API error', err);
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+## Required Practices
+
+- Use React Native Paper or NativeBase for UI
+- Platform-specific code with `Platform.select`
+- Handle keyboard avoiding views
+- Implement pull-to-refresh
+- Add loading and error states
+- Optimize FlatList with `getItemLayout`
+- Test on both iOS and Android

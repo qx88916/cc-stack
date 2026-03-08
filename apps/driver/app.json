@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "FijiCabConnect Driver",
+    "slug": "fijicabconnect-driver",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/logo-horizontal-white.svg",
+    "scheme": "driverapp",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fijicabconnect.driver"
+    },
+    "android": {
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.fijicabconnect.driver"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "FijiCabConnect Driver needs your location to send ride requests.",
+          "locationAlwaysPermission": "FijiCabConnect Driver needs background location to receive rides while offline.",
+          "locationWhenInUsePermission": "FijiCabConnect Driver needs your location to show you nearby rides.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/logo-horizontal-white.svg",
+          "color": "#f59e0b"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FijiCabConnect Driver accesses your photos to update your profile picture."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2e06f3d0-2717-414d-878a-e5a19aebebe8"
+      }
+    }
+  }
+}

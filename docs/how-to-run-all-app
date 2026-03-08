@@ -1,0 +1,154 @@
+=====================================
+  HOW TO RUN ALL CABCONNECT APPS
+=====================================
+
+
+═════════════════════════════════════
+  ONE-TIME SETUP
+═════════════════════════════════════
+
+1. Install Node.js (LTS)
+   Download: https://nodejs.org/
+
+2. Install MongoDB Community Server
+   Download: https://www.mongodb.com/try/download/community
+   During install, keep "Install MongoDB as a Service" checked.
+
+3. Verify MongoDB is running:
+   mongod --version
+
+   If mongod is not recognized, add MongoDB to PATH:
+   C:\Program Files\MongoDB\Server\<version>\bin
+   Example: C:\Program Files\MongoDB\Server\7.0\bin
+
+   Optional: open the Mongo shell (mongosh)
+   mongosh
+
+   If mongosh is not recognized, add it to PATH:
+   C:\Program Files\mongosh\mongosh-<version>-win32-x64\bin
+   Example: C:\Program Files\mongosh\mongosh-2.6.0-win32-x64\bin
+
+4. Install Expo CLI globally (for mobile apps):
+   npm install -g expo-cli
+
+5. Install Expo Go on your phone (Android / iOS) for testing mobile apps.
+
+
+═════════════════════════════════════
+  ENVIRONMENT VARIABLES
+═════════════════════════════════════
+
+Backend (.env in cabconnect-backend-main):
+   PORT=5000                                        # optional, defaults to 5000
+   MONGODB_URI=mongodb://127.0.0.1:27017/ridehailing  # optional, defaults to this
+
+Passenger App (.env in cabconnect-passenger-app):
+   EXPO_PUBLIC_API_URL=http://<your-ip>:5000        # optional, defaults to remote server
+   EXPO_PUBLIC_GEOAPIFY_API_KEY=your_key            # for maps
+   EXPO_PUBLIC_DIRECTIONS_API_KEY=your_key          # optional, Google Directions
+
+Driver App (.env in cabconnect-driver-app):
+   EXPO_PUBLIC_API_URL=http://<your-ip>:5000        # optional, defaults to remote server
+   EXPO_PUBLIC_GEOAPIFY_API_KEY=your_key            # for maps
+   EXPO_PUBLIC_DIRECTIONS_API_KEY=your_key          # optional, Google Directions
+
+   Tip: Copy .env.example to .env and fill in values.
+   Tip: Use your local IP (not localhost) so mobile devices can reach the backend.
+
+
+═════════════════════════════════════
+  DAILY RUN
+═════════════════════════════════════
+
+Start MongoDB (run PowerShell as Admin):
+   net start MongoDB
+
+
+─────────────────────────────────────
+  1. BACKEND SERVER
+─────────────────────────────────────
+
+   cd d:\Projects\08_CC\cabconnect-apps\cabconnect-backend-main
+  
+  
+
+   Server runs at: http://localhost:5000
+   Health check:   http://localhost:5000/health
+
+   Available scripts:
+     npm run dev    → development with hot-reload (ts-node-dev)
+     npm run build  → compile TypeScript to dist/
+     npm start      → run compiled build (node dist/index.js)
+
+
+─────────────────────────────────────
+  2. PASSENGER APP (Expo / React Native)
+─────────────────────────────────────
+
+   cd d:\Projects\08_CC\cabconnect-apps\cabconnect-passenger-app
+   npm install
+   npm start
+
+   This launches the Expo dev server. Then:
+     • Press  a  → open on Android emulator / Expo Go
+     • Press  i  → open on iOS simulator (macOS only)
+     • Press  w  → open in web browser
+     • Scan the QR code with Expo Go on your phone
+
+   Available scripts:
+     npm start       → expo start (default)
+     npm run android → expo run:android
+     npm run ios     → expo run:ios
+     npm run web     → expo start --web
+     npm run lint    → expo lint
+
+
+─────────────────────────────────────
+  3. DRIVER APP (Expo / React Native)
+─────────────────────────────────────
+
+   cd d:\Projects\08_CC\cabconnect-apps\cabconnect-driver-app
+   npm install
+   npm start
+
+   This launches the Expo dev server. Then:
+     • Press  a  → open on Android emulator / Expo Go
+     • Press  i  → open on iOS simulator (macOS only)
+     • Press  w  → open in web browser
+     • Scan the QR code with Expo Go on your phone
+
+   Available scripts:
+     npm start       → expo start (default)
+     npm run android → expo run:android
+     npm run ios     → expo run:ios
+     npm run web     → expo start --web
+     npm run lint    → expo lint
+
+
+═════════════════════════════════════
+  RECOMMENDED STARTUP ORDER
+═════════════════════════════════════
+
+   1. MongoDB       (net start MongoDB)
+   2. Backend       (npm run dev)
+   3. Passenger App (npm start) — in a separate terminal
+   4. Driver App    (npm start) — in a separate terminal
+
+
+═════════════════════════════════════
+  TROUBLESHOOTING
+═════════════════════════════════════
+
+  • "mongod is not recognized"
+    → Add MongoDB bin folder to your system PATH.
+
+  • Mobile app can't reach backend
+    → Use your machine's local IP (e.g. 192.168.x.x) instead of localhost in .env.
+    → Make sure your phone and PC are on the same Wi-Fi network.
+    → Check Windows Firewall isn't blocking port 5000.
+
+  • Expo cache issues
+    → Run: npx expo start --clear
+
+  • Port 5000 already in use
+    → Set a different PORT in backend .env, or kill the process using that port.
