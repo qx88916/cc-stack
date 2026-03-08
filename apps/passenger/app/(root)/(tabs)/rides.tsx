@@ -348,27 +348,20 @@ const Rides = () => {
                   No upcoming rides
                 </Text>
                 <Text className="text-base font-JakartaMedium text-neutral-500 text-center leading-6 mb-6">
-                  Whatever is on your schedule, a Scheduled Ride can get you there on time
+                  You don't have any upcoming rides. Book a ride now to get started!
                 </Text>
+
+                {/* Book Ride Button */}
                 <TouchableOpacity
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    router.push("/(root)/(tabs)/home");
                   }}
-                  className="mb-8"
-                >
-                  <Text className="text-base font-JakartaSemiBold text-primary-600">
-                    Learn how it works
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Schedule Ride Button */}
-                <TouchableOpacity
-                  onPress={handleScheduleRide}
                   className="bg-primary-500 py-4 px-12 rounded-2xl shadow-lg shadow-primary-500/30"
                   activeOpacity={0.85}
                 >
                   <Text className="text-white font-JakartaBold text-base">
-                    Schedule a ride
+                    Book Ride Now
                   </Text>
                 </TouchableOpacity>
               </>

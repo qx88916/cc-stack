@@ -33,6 +33,7 @@ function toUserResponse(user: {
   role?: string | null; 
   profilePhoto?: string | null;
   emailVerified?: boolean;
+  phoneVerified?: boolean;
   createdAt?: Date 
 }) {
   return {
@@ -43,6 +44,7 @@ function toUserResponse(user: {
     role: user.role ?? 'passenger',
     profilePhoto: user.profilePhoto ?? undefined,
     emailVerified: user.emailVerified ?? false,
+    phoneVerified: user.phoneVerified ?? false,
     createdAt: user.createdAt,
   };
 }
@@ -126,11 +128,14 @@ authRouter.post('/send-email-otp', otpLimiter, async (req, res) => {
       return res.status(400).json({ message: 'Invalid email format' });
     }
     
-    // Check if email already exists (for ALL purposes, including verification)
-    const existing = await UserModel.findOne({ email: emailNorm });
-    if (existing) {
-      return res.status(400).json({ message: 'An account with this email already exists' });
+    // Check if email already exists - ONLY block for signup/registration, not verification
+    if (purpose !== 'verification') {
+      const existing = await UserModel.findOne({ email: emailNorm });
+      if (existing) {
+        return res.status(400).json({ message: 'An account with this email already exists' });
+      }
     }
+    // For verification purpose, allow sending OTP to existing emails (user is verifying their own email)
     
     const code = await sendEmailOtp(emailNorm, purpose || 'verification');
     res.json({ success: true, message: 'Verification code sent to your email' });

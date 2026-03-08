@@ -32,6 +32,7 @@ export interface AuthUser {
   role: UserRole;
   profilePhoto?: string;
   emailVerified?: boolean;
+  phoneVerified?: boolean;
   createdAt?: string;
 }
 
@@ -68,6 +69,7 @@ function normalizeUser(raw: {
   role?: string; 
   profilePhoto?: string;
   emailVerified?: boolean;
+  phoneVerified?: boolean;
   createdAt?: string 
 }): AuthUser {
   const role = (raw.role === "driver" || raw.role === "admin" ? raw.role : "passenger") as UserRole;
@@ -79,6 +81,7 @@ function normalizeUser(raw: {
     role,
     profilePhoto: raw.profilePhoto,
     emailVerified: raw.emailVerified,
+    phoneVerified: raw.phoneVerified,
     createdAt: raw.createdAt,
   };
 }

@@ -16,6 +16,7 @@ import {
     Animated,
     FlatList,
     Image,
+    Linking,
     RefreshControl,
     Text,
     TouchableOpacity,
@@ -199,6 +200,7 @@ const Home = () => {
         router.push('/(root)/(tabs)/rides')
         break
       case 'support':
+        Linking.openURL('mailto:support@fijicabconnect.com?subject=Support Request')
         break
     }
   }

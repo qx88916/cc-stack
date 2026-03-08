@@ -203,6 +203,7 @@ router.patch('/profile', authMiddleware, async (req, res) => {
         role: user.role,
         profilePhoto: user.profilePhoto,
         emailVerified: user.emailVerified,
+        phoneVerified: user.phoneVerified,
         createdAt: user.createdAt,
       },
     });
@@ -243,6 +244,7 @@ router.get('/profile', authMiddleware, async (req, res) => {
         role: user.role,
         profilePhoto: user.profilePhoto,
         emailVerified: user.emailVerified,
+        phoneVerified: user.phoneVerified,
         createdAt: user.createdAt,
       },
     });
@@ -432,6 +434,43 @@ router.post('/verify-email', authMiddleware, async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: 'Failed to verify email' 
+    });
+  }
+});
+
+/**
+ * POST /user/verify-phone
+ * Mark user's phone as verified
+ * Requires authentication
+ */
+router.post('/verify-phone', authMiddleware, async (req, res) => {
+  try {
+    const userId = (req as AuthReq).userId;
+    
+    const user = await UserModel.findByIdAndUpdate(
+      userId,
+      { $set: { phoneVerified: true } },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found' 
+      });
+    }
+
+    console.log(`✅ Phone verified for user ${userId}`);
+
+    res.json({
+      success: true,
+      message: 'Phone verified successfully',
+    });
+  } catch (error) {
+    console.error('Error verifying phone:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to verify phone' 
     });
   }
 });

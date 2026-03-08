@@ -46,7 +46,6 @@ const Profile = () => {
 
   const handleSignOut = () => {
     logout();
-    router.replace('/(auth)/login');
   };
 
   const handlePhotoUploaded = async (_photoUrl: string) => {
@@ -158,11 +157,11 @@ const Profile = () => {
             {user.email || "\u2014"}
           </Text>
 
-          {/* Verified / Unverified Badge */}
+          {/* Email Verified / Unverified Badge */}
           {user.emailVerified ? (
             <View className="flex-row items-center bg-primary-100 px-3 py-1.5 rounded-full mt-3">
               <Image source={icons.checkmark} className="w-3.5 h-3.5 mr-1.5" tintColor={COLORS.primary} />
-              <Text className="text-xs font-JakartaSemiBold text-primary-700">Verified</Text>
+              <Text className="text-xs font-JakartaSemiBold text-primary-700">Email Verified</Text>
             </View>
           ) : (
             <TouchableOpacity
@@ -173,6 +172,35 @@ const Profile = () => {
                 Verify Email
               </Text>
             </TouchableOpacity>
+          )}
+
+          {/* Phone Number (if exists) */}
+          {user.phone && (
+            <>
+              <Text className="text-xs font-JakartaMedium text-neutral-400 mt-4">
+                Phone Number
+              </Text>
+              <Text className="text-sm font-JakartaMedium text-neutral-500 mt-1">
+                {user.phone}
+              </Text>
+
+              {/* Phone Verified / Unverified Badge */}
+              {user.phoneVerified ? (
+                <View className="flex-row items-center bg-primary-100 px-3 py-1.5 rounded-full mt-3">
+                  <Image source={icons.checkmark} className="w-3.5 h-3.5 mr-1.5" tintColor={COLORS.primary} />
+                  <Text className="text-xs font-JakartaSemiBold text-primary-700">Phone Verified</Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => router.push("/(root)/verify-phone")}
+                  className="flex-row items-center bg-accent-100 px-3 py-1.5 rounded-full mt-3"
+                >
+                  <Text className="text-xs font-JakartaSemiBold text-accent-700">
+                    Verify Phone
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
           )}
 
           {/* Info Row */}
