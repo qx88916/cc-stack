@@ -7,7 +7,7 @@
     "icon": "./assets/images/logo-horizontal-white.svg",
     "scheme": "driverapp",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.fijicabconnect.driver"

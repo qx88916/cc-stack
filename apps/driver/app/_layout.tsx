@@ -8,78 +8,24 @@ import {
   PlusJakartaSans_300Light,
   PlusJakartaSans_200ExtraLight,
 } from "@expo-google-fonts/plus-jakarta-sans";
+import Constants from "expo-constants";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import * as Notifications from "expo-notifications";
-import * as Device from "expo-device";
-import { Platform } from "react-native";
-import { useEffect, useRef, useState } from "react";
+import * as React from "react";
+import { Suspense, useEffect, useState } from "react";
 
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { SocketProvider } from "@/contexts/SocketContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import "../global.css";
 
 SplashScreen.preventAutoHideAsync();
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
-
-function PushTokenRegistrar() {
-  const { session, apiBaseUrl } = useAuth();
-  const registered = useRef(false);
-
-  useEffect(() => {
-    if (!session?.token || registered.current) return;
-
-    (async () => {
-      if (!Device.isDevice) return;
-
-      const { status: existing } = await Notifications.getPermissionsAsync();
-      let finalStatus = existing;
-      if (existing !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus !== "granted") return;
-
-      if (Platform.OS === "android") {
-        await Notifications.setNotificationChannelAsync("ride-requests", {
-          name: "Ride Requests",
-          importance: Notifications.AndroidImportance.MAX,
-          vibrationPattern: [0, 400, 200, 400],
-          sound: "default",
-        });
-      }
-
-      const tokenData = await Notifications.getExpoPushTokenAsync();
-      const pushToken = tokenData.data;
-
-      try {
-        await fetch(`${apiBaseUrl}/driver/push-token`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.token}`,
-          },
-          body: JSON.stringify({ pushToken }),
-        });
-        registered.current = true;
-      } catch {
-        // Will retry on next app start
-      }
-    })();
-  }, [session?.token, apiBaseUrl]);
-
-  return null;
-}
+/** Push notifications removed from Expo Go in SDK 53. Only load in dev/production builds. */
+const isExpoGo = Constants.appOwnership === "expo";
+const PushTokenRegistrar = isExpoGo
+  ? () => null
+  : React.lazy(() => import("@/components/PushTokenRegistrar"));
 
 export default function RootLayout() {
   const [appIsReady, setAppIsReady] = useState(false);
@@ -107,7 +53,11 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <PushTokenRegistrar />
+        {isExpoGo ? null : (
+          <Suspense fallback={null}>
+            <PushTokenRegistrar />
+          </Suspense>
+        )}
         <SocketProvider>
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
