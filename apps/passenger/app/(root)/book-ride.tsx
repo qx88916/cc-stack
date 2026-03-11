@@ -8,6 +8,7 @@ import { icons } from "@/constants";
 import { COLORS, ACTIVITY_COLOR } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSocket } from "@/contexts/SocketContext";
+import { fetchAPI } from "@/lib/fetch";
 import { formatTime } from "@/lib/utils";
 import { useLocationStore } from "@/store/locationStore";
 import { useRideStore, ActiveRide } from "@/store/rideStore";
@@ -118,11 +119,10 @@ const BookRide = () => {
       // Generate idempotency key for this request (prevents duplicates on retry)
       const idempotencyKey = `${session?.user?.id}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
-      const response = await fetch(`${apiBaseUrl}/ride/book`, {
+      const data = await fetchAPI("/ride/book", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.token}`,
           "Idempotency-Key": idempotencyKey,
         },
         body: JSON.stringify({
@@ -147,13 +147,7 @@ const BookRide = () => {
           durationMinutes: fareEstimate.durationMinutes,
           paymentMethod: "cash",
         }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to book ride");
-      }
+      }) as Record<string, unknown>;
 
       // Set active ride
       setActiveRide({
@@ -201,21 +195,11 @@ const BookRide = () => {
           onPress: async () => {
             setCancelling(true);
             try {
-              const response = await fetch(`${apiBaseUrl}/ride/${activeRide.id}/cancel`, {
+              await fetchAPI(`/ride/${activeRide.id}/cancel`, {
                 method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${session?.token}`,
-                },
-                body: JSON.stringify({
-                  reason: 'Cancelled by passenger',
-                }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason: 'Cancelled by passenger' }),
               });
-
-              if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.message || 'Failed to cancel ride');
-              }
 
               // Clear active ride and driver location
               setActiveRide(null);

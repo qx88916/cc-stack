@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getApiBaseUrl } from '@/src/config';
+import { fetchAPI } from '@/lib/fetch';
 
 export interface SavedPlace {
   type: 'home' | 'work' | 'custom';
@@ -28,34 +28,22 @@ export const useSavedPlacesStore = create<SavedPlacesStore>((set, get) => ({
   fetchPlaces: async () => {
     set({ isLoading: true, error: null });
     try {
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-      const token = await AsyncStorage.getItem('@auth/token');
-      const apiBaseUrl = await getApiBaseUrl();
+      const data = await fetchAPI('/user/saved-places') as { places?: Array<{ type: SavedPlace['type']; label: string; address: string; coordinates?: { lat: number; lng: number }; latitude?: number; longitude?: number }> };
+      const placesMap: Record<string, SavedPlace> = {};
 
-      const response = await fetch(`${apiBaseUrl}/user/saved-places`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const placesMap: Record<string, SavedPlace> = {};
-        
-        if (data.places && Array.isArray(data.places)) {
-          data.places.forEach((place: { type: SavedPlace['type']; label: string; address: string; coordinates?: { lat: number; lng: number }; latitude?: number; longitude?: number }) => {
-            placesMap[place.type] = {
-              type: place.type,
-              label: place.label,
-              address: place.address,
-              latitude: place.coordinates?.lat ?? place.latitude ?? 0,
-              longitude: place.coordinates?.lng ?? place.longitude ?? 0,
-            };
-          });
-        }
-        
-        set({ places: placesMap });
+      if (data.places && Array.isArray(data.places)) {
+        data.places.forEach((place) => {
+          placesMap[place.type] = {
+            type: place.type,
+            label: place.label,
+            address: place.address,
+            latitude: place.coordinates?.lat ?? place.latitude ?? 0,
+            longitude: place.coordinates?.lng ?? place.longitude ?? 0,
+          };
+        });
       }
+
+      set({ places: placesMap });
     } catch (error) {
       console.error('Error fetching saved places:', error);
       set({ error: 'Failed to load saved places. Please try again.' });
@@ -66,27 +54,14 @@ export const useSavedPlacesStore = create<SavedPlacesStore>((set, get) => ({
 
   setPlace: async (type: string, place: SavedPlace) => {
     try {
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-      const token = await AsyncStorage.getItem('@auth/token');
-      const apiBaseUrl = await getApiBaseUrl();
-
-      const response = await fetch(`${apiBaseUrl}/user/saved-places`, {
+      await fetchAPI('/user/saved-places', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type, place }),
       });
 
-      if (response.ok) {
-        const currentPlaces = get().places;
-        set({
-          places: { ...currentPlaces, [type]: place },
-        });
-      } else {
-        throw new Error('Failed to save place');
-      }
+      const currentPlaces = get().places;
+      set({ places: { ...currentPlaces, [type]: place } });
     } catch (error) {
       console.error('Error saving place:', error);
       throw error;
@@ -95,24 +70,13 @@ export const useSavedPlacesStore = create<SavedPlacesStore>((set, get) => ({
 
   deletePlace: async (type: string) => {
     try {
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-      const token = await AsyncStorage.getItem('@auth/token');
-      const apiBaseUrl = await getApiBaseUrl();
-
-      const response = await fetch(`${apiBaseUrl}/user/saved-places/${type}`, {
+      await fetchAPI(`/user/saved-places/${type}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
       });
 
-      if (response.ok) {
-        const currentPlaces = get().places;
-        const { [type]: _, ...restPlaces } = currentPlaces;
-        set({ places: restPlaces });
-      } else {
-        throw new Error('Failed to delete place');
-      }
+      const currentPlaces = get().places;
+      const { [type]: _, ...restPlaces } = currentPlaces;
+      set({ places: restPlaces });
     } catch (error) {
       console.error('Error deleting place:', error);
       throw error;

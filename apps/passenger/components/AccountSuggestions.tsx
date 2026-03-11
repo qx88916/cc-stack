@@ -1,16 +1,18 @@
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { icons } from '@/constants';
+import { COLORS, SHADOW_SM } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSavedPlacesStore } from '@/store/savedPlacesStore';
-import { SHADOW_SM } from '@/constants/theme';
 
 interface Suggestion {
   id: string;
   title: string;
   description: string;
   action: () => void;
-  icon: string;
+  iconSource: number;
+  iconTint: string;
 }
 
 export default function AccountSuggestions() {
@@ -26,7 +28,8 @@ export default function AccountSuggestions() {
         id: 'photo',
         title: 'Add a profile photo',
         description: 'Help drivers recognize you',
-        icon: '📸',
+        iconSource: icons.camera,
+        iconTint: COLORS.primary,
         action: () => router.push('/(root)/(tabs)/profile'),
       });
     }
@@ -36,7 +39,8 @@ export default function AccountSuggestions() {
         id: 'email',
         title: 'Verify your email',
         description: 'Required for account security',
-        icon: '✉️',
+        iconSource: icons.email,
+        iconTint: COLORS.primary,
         action: () => router.push('/(root)/verify-email'),
       });
     }
@@ -46,7 +50,8 @@ export default function AccountSuggestions() {
         id: 'home',
         title: 'Add home location',
         description: 'Book rides in one tap',
-        icon: '🏠',
+        iconSource: icons.home,
+        iconTint: COLORS.primary,
         action: () => router.push('/(root)/add-place?type=home'),
       });
     }
@@ -56,7 +61,8 @@ export default function AccountSuggestions() {
         id: 'work',
         title: 'Add work location',
         description: 'Quick commute booking',
-        icon: '💼',
+        iconSource: icons.briefcase,
+        iconTint: COLORS.secondary,
         action: () => router.push('/(root)/add-place?type=work'),
       });
     }
@@ -78,7 +84,7 @@ export default function AccountSuggestions() {
     <View className="bg-primary-100 rounded-2xl p-4 mb-4 border border-primary-200">
       <View className="flex-row items-center mb-3">
         <View className="bg-primary-500 w-11 h-11 rounded-2xl items-center justify-center mr-3">
-          <Text className="text-xl text-white font-JakartaBold">✓</Text>
+          <Image source={icons.checkmark} className="w-5 h-5" tintColor="white" resizeMode="contain" />
         </View>
         <View className="flex-1">
           <Text className="font-JakartaBold text-primary-900 text-sm">
@@ -119,7 +125,9 @@ export default function AccountSuggestions() {
               style={SHADOW_SM}
               activeOpacity={0.7}
             >
-              <Text className="text-2xl mb-2">{suggestion.icon}</Text>
+              <View className="w-10 h-10 rounded-xl bg-general-500 items-center justify-center mb-2">
+                <Image source={suggestion.iconSource} className="w-5 h-5" tintColor={suggestion.iconTint} resizeMode="contain" />
+              </View>
               <Text className="font-JakartaBold text-neutral-800 text-sm mb-1">
                 {suggestion.title}
               </Text>

@@ -4,6 +4,7 @@ import StaticMap from '@/components/StaticMap'
 import { icons } from '@/constants'
 import { COLORS, ACTIVITY_COLOR, SHADOW_SM, SHADOW_MD } from '@/constants/theme'
 import { useAuth } from '@/contexts/AuthContext'
+import { fetchAPI } from '@/lib/fetch'
 import { useLocationStore } from '@/store/locationStore'
 import { useSavedPlacesStore } from '@/store/savedPlacesStore'
 import { Ride } from '@/types/type'
@@ -95,17 +96,8 @@ const Home = () => {
     setRidesLoading(true)
     setRidesError(null)
     try {
-      const response = await fetch(`${apiBaseUrl}/history`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.token}`,
-        },
-      })
-      const data = await response.json()
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to load rides')
-      }
-      const rides = Array.isArray(data) ? data : (data.rides ?? [])
+      const data = await fetchAPI('/history') as Record<string, unknown>
+      const rides = Array.isArray(data) ? data : ((data.rides ?? []) as Record<string, unknown>[])
       const adapted = rides.slice(0, 5).map((r: Record<string, unknown>) =>
         adaptRide(r, session.user?.id || '')
       )
@@ -344,7 +336,7 @@ const Home = () => {
               <View className="bg-accent-50 border border-accent-200 p-4 rounded-2xl mb-5" style={SHADOW_SM}>
                 <View className="flex-row items-center">
                   <View className="w-10 h-10 rounded-full bg-accent-100 items-center justify-center mr-3">
-                    <Text className="text-lg">📍</Text>
+                    <Image source={icons.pin} className="w-5 h-5" tintColor={COLORS.secondary} resizeMode="contain" />
                   </View>
                   <View className="flex-1">
                     <Text className="font-JakartaBold text-neutral-800 text-sm mb-1">
@@ -411,7 +403,7 @@ const Home = () => {
                       style={SHADOW_SM}
                     >
                       <View className="bg-primary-100 w-11 h-11 rounded-2xl items-center justify-center mb-2.5">
-                        <Text className="text-xl">🏠</Text>
+                        <Image source={icons.home} className="w-5 h-5" tintColor={COLORS.primary} resizeMode="contain" />
                       </View>
                       <Text className="font-JakartaBold text-sm text-neutral-800 mb-1">Home</Text>
                       <Text className="text-neutral-500 text-xs font-JakartaMedium" numberOfLines={2}>
@@ -426,7 +418,7 @@ const Home = () => {
                       style={SHADOW_SM}
                     >
                       <View className="bg-accent-100 w-11 h-11 rounded-2xl items-center justify-center mb-2.5">
-                        <Text className="text-xl">💼</Text>
+                        <Image source={icons.briefcase} className="w-6 h-6" tintColor={COLORS.secondary} resizeMode="contain" />
                       </View>
                       <Text className="font-JakartaBold text-sm text-neutral-800 mb-1">Work</Text>
                       <Text className="text-neutral-500 text-xs font-JakartaMedium" numberOfLines={2}>

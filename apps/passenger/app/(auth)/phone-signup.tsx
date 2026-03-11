@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
@@ -168,9 +168,10 @@ export default function PhoneSignup() {
 
           {step === 1 && (
             <View>
-              <Text className="text-base font-JakartaBold text-gray-900 mb-3">
-                📱 Enter your phone number
-              </Text>
+              <View className="flex-row items-center mb-3">
+                <Image source={icons.phone} className="w-5 h-5 mr-2" tintColor="#111827" resizeMode="contain" />
+                <Text className="text-base font-JakartaBold text-gray-900">Enter your phone number</Text>
+              </View>
               <View className="flex-row items-center mb-6">
                 <View className="bg-neutral-100 px-4 py-4 rounded-l-2xl border-2 border-r-0 border-neutral-200">
                   <Text className="text-base font-JakartaBold text-gray-700">+679</Text>
@@ -207,9 +208,10 @@ export default function PhoneSignup() {
 
           {step === 2 && (
             <View>
-              <Text className="text-base font-JakartaBold text-gray-900 mb-3">
-                🔒 Create a password
-              </Text>
+              <View className="flex-row items-center mb-3">
+                <Image source={icons.lock} className="w-5 h-5 mr-2" tintColor="#111827" resizeMode="contain" />
+                <Text className="text-base font-JakartaBold text-gray-900">Create a password</Text>
+              </View>
               <InputField
                 label="Password"
                 placeholder="At least 8 characters"
@@ -256,9 +258,10 @@ export default function PhoneSignup() {
 
           {step === 3 && (
             <View>
-              <Text className="text-base font-JakartaBold text-gray-900 mb-1">
-                ✉️ Enter verification code
-              </Text>
+              <View className="flex-row items-center mb-1">
+                <Image source={icons.email} className="w-5 h-5 mr-2" tintColor="#111827" resizeMode="contain" />
+                <Text className="text-base font-JakartaBold text-gray-900">Enter verification code</Text>
+              </View>
               <Text className="text-sm text-gray-600 font-JakartaRegular mb-6">
                 Sent to +679 {form.phone}
               </Text>

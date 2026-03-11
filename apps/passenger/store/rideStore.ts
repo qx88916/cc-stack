@@ -1,3 +1,4 @@
+import { fetchAPI } from '@/lib/fetch';
 import { MarkerData } from '@/types/type';
 import { FareBreakdown } from '@cabconnect/shared';
 import { create } from 'zustand';
@@ -80,41 +81,47 @@ export const useRideStore = create<RideStore>((set, get) => ({
     selectedDriver: null 
   }),
 
-  recoverActiveRide: async (apiBaseUrl: string, token: string) => {
-    const current = get().activeRide;
-    if (!current?.id) return;
-
+  recoverActiveRide: async (_apiBaseUrl: string, _token: string) => {
     try {
-      const response = await fetch(`${apiBaseUrl}/ride/${current.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const data = await fetchAPI('/ride/active') as { ride?: Record<string, unknown> };
+      const ride = data.ride;
 
-      if (!response.ok) return;
-
-      const data = await response.json();
-      const status = data.status as ActiveRide['status'];
-
-      if (status === 'completed' || status === 'cancelled') {
+      if (!ride) {
         set({ activeRide: null });
         return;
       }
 
+      const current = get().activeRide;
       set({
         activeRide: {
-          ...current,
-          status,
-          driver: data.driver
+          id: ride.id,
+          status: ride.status,
+          pickup: {
+            latitude: ride.pickup?.coords?.latitude ?? current?.pickup.latitude ?? 0,
+            longitude: ride.pickup?.coords?.longitude ?? current?.pickup.longitude ?? 0,
+            address: ride.pickup?.description ?? current?.pickup.address ?? '',
+          },
+          dropoff: {
+            latitude: ride.dropoff?.coords?.latitude ?? current?.dropoff.latitude ?? 0,
+            longitude: ride.dropoff?.coords?.longitude ?? current?.dropoff.longitude ?? 0,
+            address: ride.dropoff?.description ?? current?.dropoff.address ?? '',
+          },
+          fare: ride.fare ?? current?.fare ?? 0,
+          currency: ride.currency ?? current?.currency ?? 'FJD',
+          distanceKm: ride.distanceKm ?? current?.distanceKm ?? 0,
+          durationMinutes: ride.durationMinutes ?? current?.durationMinutes ?? 0,
+          createdAt: ride.createdAt ?? current?.createdAt ?? new Date().toISOString(),
+          driver: ride.driver
             ? {
-                id: data.driver.id || data.driver._id,
-                name: data.driver.name,
-                phone: data.driver.phone,
-                vehicle: data.driver.vehicle,
-                plateNumber: data.driver.plateNumber,
-                rating: data.driver.rating,
-                profileImage: data.driver.profileImage,
-                carImage: data.driver.carImage,
+                id: ride.driver.id,
+                name: ride.driver.name,
+                phone: ride.driver.phone,
+                vehicle: ride.driver.vehicle,
+                plateNumber: ride.driver.plateNumber,
+                rating: ride.driver.rating,
+                profileImage: ride.driver.profileImage,
               }
-            : current.driver,
+            : current?.driver,
         },
       });
     } catch {

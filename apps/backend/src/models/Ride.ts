@@ -41,6 +41,7 @@ const rideSchema = new mongoose.Schema({
   cancellationReason: String,
   rejectedDrivers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Driver' }],
   paymentMethod: { type: String, enum: ['cash', 'mpaisa'], default: 'cash' },
+  passengerRating: { type: Number, min: 1, max: 5 },
 }, { timestamps: true });
 
 rideSchema.index({ passengerId: 1, status: 1 });

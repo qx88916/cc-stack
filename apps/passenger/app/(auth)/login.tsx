@@ -1,6 +1,6 @@
 import { Link, router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
@@ -14,7 +14,6 @@ export default function Login() {
   const [errors, setErrors] = useState({ email: "", password: "" });
   const [backendError, setBackendError] = useState(""); // New: For backend errors
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [fieldSuccess, setFieldSuccess] = useState({
     email: false,
     password: false,
@@ -160,18 +159,7 @@ export default function Login() {
               <Text className="text-red-500 text-sm mb-3">{errors.password}</Text>
             ) : null}
 
-            <View className="flex-row justify-between items-center mb-6 mt-2">
-              <TouchableOpacity 
-                className="flex-row items-center" 
-                onPress={() => setRememberMe(!rememberMe)}
-                activeOpacity={0.7}
-              >
-                <View className={`w-5 h-5 rounded border-2 items-center justify-center mr-2 ${rememberMe ? 'bg-primary-500 border-primary-500' : 'bg-white border-gray-300'}`}>
-                  {rememberMe && <Text className="text-white text-xs">✓</Text>}
-                </View>
-                <Text className="font-JakartaMedium text-sm text-gray-700">Remember me</Text>
-              </TouchableOpacity>
-
+            <View className="flex-row justify-end items-center mb-6 mt-2">
               <Link
                 href="/forgot-password"
                 className="text-sm text-primary-500 font-JakartaSemiBold"
@@ -198,11 +186,12 @@ export default function Login() {
 
           <TouchableOpacity
             onPress={() => router.push("/(auth)/phone-login")}
-            className="border-2 border-primary-500 rounded-2xl py-4 mb-6"
+            className="border-2 border-primary-500 rounded-2xl py-4 mb-6 flex-row items-center justify-center"
             activeOpacity={0.7}
           >
-            <Text className="text-primary-500 font-JakartaSemiBold text-center text-base">
-              📱 Login with Phone Number
+            <Image source={icons.phone} className="w-5 h-5 mr-2" tintColor="#10b981" resizeMode="contain" />
+            <Text className="text-primary-500 font-JakartaSemiBold text-base">
+              Login with Phone Number
             </Text>
           </TouchableOpacity>
 

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, TouchableOpacity, Image, Text, Alert, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { icons } from '@/constants';
 import { COLORS, ACTIVITY_COLOR } from '@/constants/theme';
-import { getApiBaseUrl, API_BASE_URL } from '@/src/config';
+import { useAuth } from '@/contexts/AuthContext';
+import { fetchAPI } from '@/lib/fetch';
+import type { ImageSourcePropType } from 'react-native';
 
 interface ProfilePhotoUploadProps {
   currentPhotoUrl?: string;
@@ -17,11 +19,7 @@ export default function ProfilePhotoUpload({
   onPhotoUploaded 
 }: ProfilePhotoUploadProps) {
   const [uploading, setUploading] = useState(false);
-  const [apiBaseUrl, setApiBaseUrl] = useState(API_BASE_URL);
-
-  useEffect(() => {
-    getApiBaseUrl().then(setApiBaseUrl);
-  }, []);
+  const { apiBaseUrl } = useAuth();
 
   const showImagePickerOptions = () => {
     Alert.alert(
@@ -97,24 +95,10 @@ export default function ProfilePhotoUpload({
         name: `profile.${fileExtension}`,
       } as unknown as Blob);
 
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-      const token = await AsyncStorage.getItem('@auth/token');
-      const apiBaseUrl = await getApiBaseUrl();
-
-      if (!token) throw new Error('Not authenticated');
-
-      const response = await fetch(`${apiBaseUrl}/user/profile-photo`, {
+      const data = await fetchAPI('/user/profile-photo', {
         method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${token}` },
         body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Upload failed with status ${response.status}`);
-      }
-
-      const data = await response.json();
+      }) as { photoUrl?: string };
       if (data.photoUrl) {
         onPhotoUploaded(data.photoUrl);
         Alert.alert('Success', 'Profile photo updated successfully!');
@@ -166,7 +150,7 @@ export default function ProfilePhotoUpload({
           {uploading ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
-            <Text className="text-white text-sm">📷</Text>
+            <Image source={icons.camera as ImageSourcePropType} className="w-4 h-4" tintColor="white" resizeMode="contain" />
           )}
         </View>
       </TouchableOpacity>

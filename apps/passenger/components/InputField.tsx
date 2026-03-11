@@ -11,8 +11,9 @@ import {
     View,
 } from "react-native";
 
-import { InputFieldProps } from "@/types/type";
+import { icons } from "@/constants";
 import { COLORS } from "@/constants/theme";
+import { InputFieldProps } from "@/types/type";
 
 const InputField = ({
   label,
@@ -78,7 +79,7 @@ const InputField = ({
             )}
             {success && !showPasswordToggle && (
               <View className="mr-4">
-                <Text className="text-primary-500 text-xl">✓</Text>
+                <Image source={icons.checkmark} className="w-5 h-5" tintColor={COLORS.primary} resizeMode="contain" />
               </View>
             )}
           </View>

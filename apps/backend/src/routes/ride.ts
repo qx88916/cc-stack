@@ -59,6 +59,7 @@ function toRideResponse(ride: any, driverDoc?: any, passengerDoc?: any) {
     currency: r.currency || 'USD',
     distanceKm: r.distanceKm,
     durationMinutes: r.durationMinutes,
+    paymentMethod: r.paymentMethod || 'cash',
     driver,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
@@ -257,6 +258,51 @@ rideRouter.post('/:id/cancel', authMiddleware, requirePassenger, async (req: Aut
     await ride.save();
     const populated = await RideModel.findById(ride._id).populate('driverId');
     res.json(toRideResponse(populated, (populated as any)?.driverId, undefined));
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+rideRouter.post('/:id/rate', authMiddleware, requirePassenger, async (req: AuthReq, res) => {
+  try {
+    const { rating } = req.body || {};
+    if (!rating || typeof rating !== 'number' || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: 'Rating must be a number between 1 and 5' });
+    }
+
+    const ride = await RideModel.findOne({
+      _id: req.params.id,
+      passengerId: req.userId,
+      status: 'completed',
+    });
+    if (!ride) {
+      return res.status(404).json({ message: 'Completed ride not found' });
+    }
+    if (ride.passengerRating) {
+      return res.status(400).json({ message: 'You have already rated this ride' });
+    }
+
+    ride.passengerRating = rating;
+    await ride.save();
+
+    if (ride.driverId) {
+      const completedRides = await RideModel.find({
+        driverId: ride.driverId,
+        status: 'completed',
+        passengerRating: { $exists: true, $ne: null },
+      }).select('passengerRating');
+
+      const avg =
+        completedRides.reduce((sum, r) => sum + (r.passengerRating ?? 0), 0) /
+        completedRides.length;
+
+      await DriverModel.findByIdAndUpdate(ride.driverId, {
+        rating: Math.round(avg * 10) / 10,
+      });
+    }
+
+    res.json({ message: 'Rating submitted', rating });
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: 'Server error' });

@@ -139,9 +139,12 @@ authRouter.post('/send-email-otp', otpLimiter, async (req, res) => {
     
     const code = await sendEmailOtp(emailNorm, purpose || 'verification');
     res.json({ success: true, message: 'Verification code sent to your email' });
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
-    res.status(500).json({ message: 'Server error' });
+    const msg = e?.message?.includes('email') || e?.message?.includes('Email') || e?.message?.includes('provider')
+      ? 'Failed to send verification email. Please try again later.'
+      : 'Server error';
+    res.status(500).json({ message: msg });
   }
 });
 
@@ -345,9 +348,12 @@ authRouter.post('/request-password-reset', otpLimiter, async (req, res) => {
     // Send password reset OTP
     await sendEmailOtp(emailNorm, 'password_reset');
     res.json({ success: true, message: 'Password reset code sent to your email' });
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
-    res.status(500).json({ message: 'Server error' });
+    const msg = e?.message?.includes('email') || e?.message?.includes('Email') || e?.message?.includes('provider')
+      ? 'Failed to send reset email. Please try again later.'
+      : 'Server error';
+    res.status(500).json({ message: msg });
   }
 });
 

@@ -1,7 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { API_BASE_URL } from "@/src/config";
+import { configureFetch } from "@/lib/fetch";
 
 const TOKEN_KEY = "@auth/token";
 const USER_KEY = "@auth/user";
@@ -91,6 +92,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [apiBaseUrl, setApiBaseUrlState] = useState(LOCAL_API);
   const router = useRouter();
+  const apiBaseUrlRef = useRef(LOCAL_API);
+
+  useEffect(() => {
+    apiBaseUrlRef.current = apiBaseUrl;
+  }, [apiBaseUrl]);
+
+  useEffect(() => {
+    configureFetch(
+      () => apiBaseUrlRef.current,
+      () => {
+        setSession(null);
+        router.replace("/(auth)/welcome");
+      }
+    );
+  }, [router]);
 
   useEffect(() => {
     AsyncStorage.getItem(API_BASE_URL_KEY).then((saved) => {
@@ -98,7 +114,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (trimmed && !isLocalOrLegacyUrl(trimmed)) {
         setApiBaseUrlState(trimmed);
       } else {
-        // Use LOCAL_API in development
         setApiBaseUrlState(LOCAL_API);
         if (trimmed && isLocalOrLegacyUrl(trimmed)) {
           AsyncStorage.setItem(API_BASE_URL_KEY, LOCAL_API);
@@ -243,10 +258,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
+    try {
+      const token = await AsyncStorage.getItem(TOKEN_KEY);
+      if (token) {
+        fetch(`${apiBaseUrl}/auth/logout`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => {});
+      }
+    } catch {
+      // Best-effort — don't block logout on network failure
+    }
+    await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY, API_BASE_URL_KEY]);
     setSession(null);
     router.replace("/(auth)/welcome");
-  }, [router]);
+  }, [router, apiBaseUrl]);
 
   return (
     <AuthContext.Provider

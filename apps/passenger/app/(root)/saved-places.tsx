@@ -46,7 +46,8 @@ export default function SavedPlaces() {
 
   const renderPlaceCard = (
     type: 'home' | 'work' | 'custom',
-    icon: string,
+    iconSource: number,
+    iconTint: string,
     defaultLabel: string,
     bgColor: string
   ) => {
@@ -57,7 +58,7 @@ export default function SavedPlaces() {
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center flex-1">
             <View className={`${bgColor} w-12 h-12 rounded-2xl items-center justify-center mr-3`}>
-              <Text className="text-2xl">{icon}</Text>
+              <Image source={iconSource} className="w-6 h-6" tintColor={iconTint} resizeMode="contain" />
             </View>
             <View className="flex-1">
               <Text className="font-JakartaBold text-base text-neutral-800 mb-0.5">
@@ -157,16 +158,17 @@ export default function SavedPlaces() {
         </View>
 
         {/* Info Box */}
-        <View className="mx-5 bg-secondary-100 border border-secondary-200 p-4 rounded-2xl mb-4">
-          <Text className="text-secondary-700 text-sm font-JakartaMedium">
-            💡 Save your frequently visited places for faster booking. Tap once on the home screen to book a ride!
+        <View className="mx-5 bg-secondary-100 border border-secondary-200 p-4 rounded-2xl mb-4 flex-row items-start">
+          <Image source={icons.info} className="w-4 h-4 mr-2 mt-0.5" tintColor={COLORS.secondary} resizeMode="contain" />
+          <Text className="text-secondary-700 text-sm font-JakartaMedium flex-1">
+            Save your frequently visited places for faster booking. Tap once on the home screen to book a ride!
           </Text>
         </View>
 
         {/* Places */}
         <View className="px-5">
-          {renderPlaceCard('home', '🏠', 'Home', 'bg-primary-100')}
-          {renderPlaceCard('work', '💼', 'Work', 'bg-accent-100')}
+          {renderPlaceCard('home', icons.home, COLORS.primary, 'Home', 'bg-primary-100')}
+          {renderPlaceCard('work', icons.briefcase, COLORS.secondary, 'Work', 'bg-accent-100')}
         </View>
 
         {/* Benefits */}
@@ -178,7 +180,7 @@ export default function SavedPlaces() {
             'Faster checkout for your daily commute',
           ].map((text, i) => (
             <View className="flex-row items-start mb-3" key={i}>
-              <Text className="text-primary-500 mr-2 mt-0.5 font-JakartaBold">✓</Text>
+              <Image source={icons.checkmark} className="w-3.5 h-3.5 mr-2 mt-0.5" tintColor={COLORS.primary} resizeMode="contain" />
               <Text className="text-neutral-600 flex-1 text-sm font-JakartaMedium">{text}</Text>
             </View>
           ))}

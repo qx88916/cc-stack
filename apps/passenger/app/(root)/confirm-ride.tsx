@@ -7,6 +7,7 @@ import FareBreakdown from "@/components/FareBreakdown";
 import RideLayout from "@/components/RideLayout";
 import { ACTIVITY_COLOR } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
+import { fetchAPI } from "@/lib/fetch";
 import { useLocationStore } from "@/store/locationStore";
 import { useRideStore } from "@/store/rideStore";
 
@@ -32,9 +33,10 @@ const ConfirmRide = () => {
 
     setEstimating(true);
     try {
-      const response = await fetch(`${apiBaseUrl}/ride/estimate`, {
+      const data = await fetchAPI("/ride/estimate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        noAuth: true,
         body: JSON.stringify({
           pickup: {
             coords: {
@@ -49,29 +51,15 @@ const ConfirmRide = () => {
             },
           },
         }),
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        // Handle geofence errors specifically
-        if (data.code?.includes('OUT_OF_SERVICE_AREA')) {
-          const message = data.nearestArea
-            ? `${data.message}\n\nNearest service area: ${data.nearestArea} (${data.distanceKm} km away)`
-            : data.message;
-          Alert.alert("Out of Service Area", message);
-          return;
-        }
-        throw new Error(data.message || "Failed to estimate fare");
-      }
+      }) as Record<string, unknown>;
 
       setFareEstimate({
-        fare: data.amount || data.fare, // Support both old and new response format
-        currency: data.currency || "USD",
-        distanceKm: data.distanceKm,
-        durationMinutes: data.durationMinutes,
-        breakdown: data.breakdown,
-        polyline: data.polyline,
+        fare: (data.amount ?? data.fare) as number,
+        currency: (data.currency as string) || "USD",
+        distanceKm: data.distanceKm as number,
+        durationMinutes: data.durationMinutes as number,
+        breakdown: data.breakdown as import("@/store/rideStore").FareBreakdown | undefined,
+        polyline: data.polyline as string | undefined,
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Could not estimate fare";

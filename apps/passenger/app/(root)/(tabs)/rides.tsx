@@ -20,6 +20,7 @@ import { PastRidesEmpty, UpcomingRidesEmpty } from "@/components/RideEmptyStates
 import { images, icons } from "@/constants";
 import { COLORS, ACTIVITY_COLOR } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
+import { fetchAPI } from "@/lib/fetch";
 import { useLocationStore } from "@/store/locationStore";
 import { Ride } from "@/types/type";
 
@@ -73,22 +74,9 @@ const Rides = () => {
     setError(null);
 
     try {
-      const response = await fetch(`${apiBaseUrl}/history`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.token}`,
-        },
-      });
+      const data = await fetchAPI('/history') as Record<string, unknown>;
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch ride history');
-      }
-
-      // Adapt backend response to match frontend Ride type
-      const rawRides: RawRide[] = Array.isArray(data) ? data : (data.rides ?? []);
+      const rawRides: RawRide[] = (Array.isArray(data) ? data : ((data.rides ?? []) as RawRide[]));
       const adaptedRides: Ride[] = rawRides.map((ride) => {
         const pickupLat = ride.pickup?.coords?.latitude ?? 0;
         const pickupLng = ride.pickup?.coords?.longitude ?? 0;
@@ -319,10 +307,8 @@ const Rides = () => {
               // Past Rides Empty State
               <>
                 <View className="items-center mb-6">
-                  {/* 3D Illustration Placeholder - Person with luggage */}
-                  <View className="w-48 h-48 items-center justify-center mb-4">
-                    <Text className="text-8xl">🧳</Text>
-                    <Text className="text-6xl absolute bottom-8">🙋‍♂️</Text>
+                  <View className="w-28 h-28 rounded-full bg-primary-50 items-center justify-center mb-4">
+                    <Image source={icons.suitcase} className="w-14 h-14" tintColor={COLORS.primary} resizeMode="contain" />
                   </View>
                 </View>
                 <Text className="text-xl font-JakartaBold text-neutral-800 text-center mb-3">
@@ -336,11 +322,10 @@ const Rides = () => {
               // Upcoming Rides Empty State
               <>
                 <View className="items-center mb-6">
-                  {/* 3D Illustration Placeholder - Calendar with clock */}
-                  <View className="w-48 h-48 items-center justify-center mb-4 relative">
-                    <Text className="text-9xl">📅</Text>
-                    <View className="absolute bottom-12 right-12 bg-white rounded-full p-2 shadow-lg">
-                      <Text className="text-4xl">🕐</Text>
+                  <View className="w-28 h-28 rounded-full bg-secondary-100 items-center justify-center mb-4 relative">
+                    <Image source={icons.calendar} className="w-14 h-14" tintColor={COLORS.secondary} resizeMode="contain" />
+                    <View className="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 shadow-lg">
+                      <Image source={icons.clock} className="w-6 h-6" tintColor={COLORS.secondary} resizeMode="contain" />
                     </View>
                   </View>
                 </View>

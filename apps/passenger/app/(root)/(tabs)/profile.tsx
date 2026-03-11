@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ProfilePhotoUpload from "@/components/ProfilePhotoUpload";
 import AccountSuggestions from "@/components/AccountSuggestions";
 import { useAuth } from "@/contexts/AuthContext";
+import { fetchAPI } from "@/lib/fetch";
 import { icons } from "@/constants";
 import { COLORS, SHADOW_SM, SHADOW_MD, SHADOW_LG } from "@/constants/theme";
 
@@ -60,20 +61,11 @@ const Profile = () => {
 
     setDeleting(true);
     try {
-      const response = await fetch(`${apiBaseUrl}/user/account`, {
+      await fetchAPI('/user/account', {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: deletePassword }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to delete account');
-      }
 
       setDeleteModalVisible(false);
       setDeletePassword('');

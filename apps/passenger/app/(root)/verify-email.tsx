@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert, TextInput, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
+import { fetchAPI } from '@/lib/fetch';
 import { icons } from '@/constants';
 import { COLORS, SHADOW_SM, SHADOW_MD } from '@/constants/theme';
-import { getApiBaseUrl } from '@/src/config';
 
 export default function VerifyEmail() {
   const router = useRouter();
@@ -23,24 +23,15 @@ export default function VerifyEmail() {
 
     setLoading(true);
     try {
-      const apiBaseUrl = await getApiBaseUrl();
-
-      const response = await fetch(`${apiBaseUrl}/auth/send-email-otp`, {
+      await fetchAPI('/auth/send-email-otp', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
+        headers: { 'Content-Type': 'application/json' },
+        noAuth: true,
+        body: JSON.stringify({
           email: session.user.email,
-          purpose: 'verification' 
+          purpose: 'verification',
         }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to send verification code');
-      }
 
       setCodeSent(true);
       Alert.alert(
@@ -72,38 +63,20 @@ export default function VerifyEmail() {
 
     setVerifying(true);
     try {
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-      const token = await AsyncStorage.getItem('@auth/token');
-      const apiBaseUrl = await getApiBaseUrl();
-
-      const verifyResponse = await fetch(`${apiBaseUrl}/auth/verify-email-otp`, {
+      await fetchAPI('/auth/verify-email-otp', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
+        noAuth: true,
         body: JSON.stringify({
           email: session.user.email,
           code: verificationCode,
         }),
       });
 
-      const verifyData = await verifyResponse.json();
-
-      if (!verifyResponse.ok) {
-        throw new Error(verifyData.message || 'Invalid verification code');
-      }
-
-      const updateResponse = await fetch(`${apiBaseUrl}/user/verify-email`, {
+      await fetchAPI('/user/verify-email', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
-
-      if (!updateResponse.ok) {
-        throw new Error('Failed to update verification status');
-      }
 
       await refreshSession();
 
@@ -191,9 +164,10 @@ export default function VerifyEmail() {
           ) : (
             <View>
               <View className="bg-secondary-100 border border-secondary-200 p-4 rounded-2xl mb-5">
-                <Text className="font-JakartaBold text-secondary-800 mb-1 text-sm">
-                  📧 Code Sent!
-                </Text>
+                <View className="flex-row items-center mb-1">
+                  <Image source={icons.email} className="w-4 h-4 mr-1.5" tintColor={COLORS.secondary} resizeMode="contain" />
+                  <Text className="font-JakartaBold text-secondary-800 text-sm">Code Sent!</Text>
+                </View>
                 <Text className="text-secondary-700 text-xs font-JakartaMedium">
                   Check your inbox for a 6-digit verification code. The code will expire in 10 minutes.
                 </Text>
@@ -261,7 +235,7 @@ export default function VerifyEmail() {
               'Required to delete account',
             ].map((text, i) => (
               <View className="flex-row items-start mb-2.5" key={i}>
-                <Text className="text-primary-500 mr-2 font-JakartaBold text-xs mt-0.5">✓</Text>
+                <Image source={icons.checkmark} className="w-3.5 h-3.5 mr-2 mt-0.5" tintColor={COLORS.primary} resizeMode="contain" />
                 <Text className="text-neutral-600 flex-1 text-sm font-JakartaMedium">{text}</Text>
               </View>
             ))}

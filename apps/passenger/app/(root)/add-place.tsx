@@ -42,10 +42,10 @@ export default function AddPlace() {
     return customLabel || 'Custom Place';
   };
 
-  const getPlaceIcon = () => {
-    if (placeType === 'home') return '🏠';
-    if (placeType === 'work') return '💼';
-    return '📍';
+  const getPlaceIconSource = () => {
+    if (placeType === 'home') return icons.home;
+    if (placeType === 'work') return icons.briefcase;
+    return icons.pin;
   };
 
   const handleSave = async () => {
@@ -97,7 +97,9 @@ export default function AddPlace() {
             <Image source={icons.backArrow} className="w-5 h-5" tintColor={COLORS.textPrimary} />
           </TouchableOpacity>
           <View className="flex-row items-center flex-1">
-            <Text className="text-3xl mr-3">{getPlaceIcon()}</Text>
+            <View className="w-10 h-10 rounded-xl bg-primary-100 items-center justify-center mr-3">
+              <Image source={getPlaceIconSource()} className="w-5 h-5" tintColor={COLORS.primary} resizeMode="contain" />
+            </View>
             <View className="flex-1">
               <Text className="text-xl font-JakartaBold text-neutral-900">
                 {isEdit ? 'Edit' : 'Add'} {placeType === 'custom' ? 'Place' : getPlaceLabel()}
@@ -195,9 +197,10 @@ export default function AddPlace() {
           </TouchableOpacity>
 
           {/* Info */}
-          <View className="mt-4 bg-secondary-100 border border-secondary-200 p-4 rounded-2xl">
-            <Text className="text-secondary-700 text-sm font-JakartaMedium">
-              💡 After saving, you can quickly book rides to this location with just one tap from your home screen.
+          <View className="mt-4 bg-secondary-100 border border-secondary-200 p-4 rounded-2xl flex-row items-start">
+            <Image source={icons.info} className="w-4 h-4 mr-2 mt-0.5" tintColor={COLORS.secondary} resizeMode="contain" />
+            <Text className="text-secondary-700 text-sm font-JakartaMedium flex-1">
+              After saving, you can quickly book rides to this location with just one tap from your home screen.
             </Text>
           </View>
         </View>

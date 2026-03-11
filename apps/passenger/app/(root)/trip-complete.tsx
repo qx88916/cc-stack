@@ -19,6 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { icons, images } from "@/constants";
 import { COLORS, ACTIVITY_COLOR, SHADOW_SM, SHADOW_MD } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
+import { fetchAPI } from "@/lib/fetch";
 import { formatDate, formatTime } from "@/lib/utils";
 import FareBreakdown from "@/components/FareBreakdown";
 import { FareBreakdown as FareBreakdownType } from "@/store/rideStore";
@@ -63,18 +64,7 @@ const TripComplete = () => {
 
   const fetchRideDetails = async () => {
     try {
-      const response = await fetch(`${apiBaseUrl}/ride/${rideId}`, {
-        headers: {
-          Authorization: `Bearer ${session?.token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch ride details');
-      }
-
+      const data = await fetchAPI(`/history/${rideId}`) as RideDetail;
       setRide(data);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Could not load ride details';
@@ -94,19 +84,11 @@ const TripComplete = () => {
 
     setSubmittingRating(true);
     try {
-      const response = await fetch(`${apiBaseUrl}/ride/${rideId}/rate`, {
+      await fetchAPI(`/ride/${rideId}/rate`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rating }),
       });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to submit rating');
-      }
 
       Alert.alert('Thank You!', 'Your rating has been submitted.', [
         { text: 'OK', onPress: () => router.replace('/(root)/(tabs)/home') },

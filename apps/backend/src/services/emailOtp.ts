@@ -34,8 +34,7 @@ async function sendBrevoEmail(to: string, subject: string, htmlContent: string, 
   const apiKey = process.env.BREVO_API_KEY;
   
   if (!apiKey || apiKey === 'your_brevo_api_key_here') {
-    console.log(`[EMAIL SKIP] Brevo API key not configured. Email would be sent to: ${to}`);
-    return;
+    throw new Error('Brevo API key not configured');
   }
 
   try {
@@ -284,10 +283,18 @@ export async function sendEmailOtp(email: string, purpose: 'verification' | 'pas
     </html>
   `;
 
-  try {
+  const brevoKey = process.env.BREVO_API_KEY;
+  const resendKey = process.env.RESEND_API_KEY;
+  const hasProvider = (brevoKey && brevoKey !== 'your_brevo_api_key_here') ||
+                      (resendKey && resendKey !== 'your_resend_api_key_here');
+
+  if (hasProvider) {
     await sendEmailWithFailover(email, subject, htmlContent, role);
-  } catch (error) {
-    console.error('Failed to send email, but OTP is still valid for console testing');
+  } else if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+    console.log(`[EMAIL SKIP] No email provider configured. OTP for ${key}: ${code}`);
+  } else {
+    await deleteOtp(email);
+    throw new Error('Email service not configured');
   }
 
   return code;

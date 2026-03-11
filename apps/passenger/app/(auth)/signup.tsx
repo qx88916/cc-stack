@@ -10,12 +10,10 @@ import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 import { icons } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { isValidEmail, suggestEmailDomain } from "@/utils/emailHelper";
-import { API_BASE_URL } from "@/src/config";
 
 const SignUp = () => {
-  const { signup } = useAuth();
+  const { signup, apiBaseUrl } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
   
   const [form, setForm] = useState({
@@ -143,7 +141,7 @@ const SignUp = () => {
     setLoading(true);
     try {
       // Step 1: Send email OTP
-      const response = await fetch(`${API_BASE_URL}/auth/send-email-otp`, {
+      const response = await fetch(`${apiBaseUrl}/auth/send-email-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email.trim().toLowerCase() }),
@@ -172,7 +170,7 @@ const SignUp = () => {
     setLoading(true);
     try {
       // Step 1: Verify email OTP
-      const verifyResponse = await fetch(`${API_BASE_URL}/auth/verify-email-otp`, {
+      const verifyResponse = await fetch(`${apiBaseUrl}/auth/verify-email-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -329,16 +327,7 @@ const SignUp = () => {
               <Text className="text-red-500 text-sm mb-3">{errors.confirmPassword}</Text>
             ) : null}
 
-            <TouchableOpacity 
-              className="flex-row items-center mb-6 mt-4" 
-              onPress={() => setRememberMe(!rememberMe)}
-              activeOpacity={0.7}
-            >
-              <View className={`w-5 h-5 rounded border-2 items-center justify-center mr-3 ${rememberMe ? 'bg-primary-500 border-primary-500' : 'bg-white border-gray-300'}`}>
-                {rememberMe && <Text className="text-white text-xs">✓</Text>}
-              </View>
-              <Text className="font-JakartaMedium text-sm text-gray-700">Remember me</Text>
-            </TouchableOpacity>
+            <View className="mb-6 mt-4" />
 
             <CustomButton
               title={loading ? "Creating account..." : "Sign Up"}
@@ -388,11 +377,12 @@ const SignUp = () => {
 
           <TouchableOpacity
             onPress={() => router.push("/(auth)/phone-signup")}
-            className="border-2 border-primary-500 rounded-2xl py-4 mb-6"
+            className="border-2 border-primary-500 rounded-2xl py-4 mb-6 flex-row items-center justify-center"
             activeOpacity={0.7}
           >
-            <Text className="text-primary-500 font-JakartaSemiBold text-center text-base">
-              📱 Sign Up with Phone Number
+            <Image source={icons.phone} className="w-5 h-5 mr-2" tintColor="#10b981" resizeMode="contain" />
+            <Text className="text-primary-500 font-JakartaSemiBold text-base">
+              Sign Up with Phone Number
             </Text>
           </TouchableOpacity>
 
@@ -420,12 +410,13 @@ const SignUp = () => {
               <Text className="font-JakartaBold text-primary-500">{form.email}</Text>
             </Text>
             
-            {/* Dev Mode Helper */}
-            <View className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-4 rounded-r-lg">
-              <Text className="text-blue-700 font-JakartaMedium text-xs text-center">
-                💡 Dev Mode: Use code <Text className="font-JakartaBold">123456</Text>
-              </Text>
-            </View>
+            {__DEV__ && (
+              <View className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-4 rounded-r-lg">
+                <Text className="text-blue-700 font-JakartaMedium text-xs text-center">
+                  Dev Mode: Use code <Text className="font-JakartaBold">123456</Text>
+                </Text>
+              </View>
+            )}
             
             <OTPInput
               length={6}

@@ -5,6 +5,7 @@
 
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import { fetchAPI } from '@/lib/fetch';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -17,8 +18,8 @@ Notifications.setNotificationHandler({
 });
 
 export async function registerForPushNotifications(
-  apiBaseUrl: string,
-  token: string
+  _apiBaseUrl: string,
+  _token: string
 ): Promise<string | null> {
   // Physical device required for push notifications
   if (Platform.OS === 'web') return null;
@@ -37,13 +38,9 @@ export async function registerForPushNotifications(
     const tokenData = await Notifications.getExpoPushTokenAsync();
     const pushToken = tokenData.data;
 
-    // Register push token with backend
-    await fetch(`${apiBaseUrl}/user/push-token`, {
+    await fetchAPI('/user/push-token', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pushToken }),
     }).catch(() => {
       // Non-fatal: push registration failure should not break the app

@@ -1,18 +1,19 @@
 import { Link, router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import OTPInput from "@/components/OTPInput";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 import { icons } from "@/constants";
+import { useAuth } from "@/contexts/AuthContext";
 import { isValidEmail } from "@/utils/emailHelper";
-import { API_BASE_URL } from "@/src/config";
 
 type Step = "email" | "otp" | "newPassword";
 
 const ForgotPassword = () => {
+  const { apiBaseUrl } = useAuth();
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("email");
   const [form, setForm] = useState({
@@ -72,7 +73,7 @@ const ForgotPassword = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `${API_BASE_URL}/auth/request-password-reset`,
+        `${apiBaseUrl}/auth/request-password-reset`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -103,7 +104,7 @@ const ForgotPassword = () => {
     
     try {
       const response = await fetch(
-        `${API_BASE_URL}/auth/verify-password-reset`,
+        `${apiBaseUrl}/auth/verify-password-reset`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -163,7 +164,7 @@ const ForgotPassword = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `${API_BASE_URL}/auth/reset-password`,
+        `${apiBaseUrl}/auth/reset-password`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -286,9 +287,10 @@ const ForgotPassword = () => {
               </Text>
 
               {successMessage && (
-                <View className="bg-primary-100 border-l-4 border-primary-500 p-4 mb-6 rounded-r-lg">
-                  <Text className="text-primary-700 font-JakartaMedium text-sm">
-                    ✓ {successMessage}
+                <View className="bg-primary-100 border-l-4 border-primary-500 p-4 mb-6 rounded-r-lg flex-row items-start">
+                  <Image source={icons.checkmark} className="w-4 h-4 mr-2 mt-0.5" tintColor="#10b981" resizeMode="contain" />
+                  <Text className="text-primary-700 font-JakartaMedium text-sm flex-1">
+                    {successMessage}
                   </Text>
                 </View>
               )}

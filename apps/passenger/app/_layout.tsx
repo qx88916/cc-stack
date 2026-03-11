@@ -115,10 +115,22 @@ function PushNotificationSetup() {
 
     registerForPushNotifications(apiBaseUrl, session.token);
 
-    responseListenerRef.current = addNotificationResponseListener((response) => {
+    responseListenerRef.current = addNotificationResponseListener(async (response) => {
       const data = response.notification.request.content.data as Record<string, unknown>;
       if (data?.rideId && typeof data.rideId === 'string') {
-        router.push(`/(root)/book-ride`);
+        try {
+          const res = await fetch(`${apiBaseUrl}/ride/active`, {
+            headers: { Authorization: `Bearer ${session?.token}` },
+          });
+          const json = await res.json();
+          if (json.ride && ['searching', 'accepted', 'arriving', 'ongoing'].includes(json.ride.status)) {
+            router.push('/(root)/book-ride');
+          } else {
+            router.push(`/(root)/trip-complete?rideId=${data.rideId}`);
+          }
+        } catch {
+          router.push(`/(root)/trip-complete?rideId=${data.rideId}`);
+        }
       }
     });
 

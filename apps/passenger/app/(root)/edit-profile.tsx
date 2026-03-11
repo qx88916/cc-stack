@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
+import { fetchAPI } from '@/lib/fetch';
 import InputField from '@/components/InputField';
 import { icons } from '@/constants';
 import { COLORS, SHADOW_SM } from '@/constants/theme';
-import { getApiBaseUrl } from '@/src/config';
 
 export default function EditProfile() {
   const router = useRouter();
@@ -25,27 +25,14 @@ export default function EditProfile() {
 
     setLoading(true);
     try {
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-      const token = await AsyncStorage.getItem('@auth/token');
-      const apiBaseUrl = await getApiBaseUrl();
-
-      const response = await fetch(`${apiBaseUrl}/user/profile`, {
+      await fetchAPI('/user/profile', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: form.name.trim(),
           phone: form.phone.trim() || undefined,
         }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to update profile');
-      }
 
       await refreshSession();
 
@@ -106,9 +93,10 @@ export default function EditProfile() {
             />
           </View>
 
-          <View className="bg-secondary-100 border border-secondary-200 p-4 rounded-2xl mt-4">
-            <Text className="text-secondary-700 text-sm font-JakartaMedium">
-              💡 Your email address cannot be changed. If you need to update it, please contact support.
+          <View className="bg-secondary-100 border border-secondary-200 p-4 rounded-2xl mt-4 flex-row items-start">
+            <Image source={icons.info} className="w-4 h-4 mr-2 mt-0.5" tintColor={COLORS.secondary} resizeMode="contain" />
+            <Text className="text-secondary-700 text-sm font-JakartaMedium flex-1">
+              Your email address cannot be changed. If you need to update it, please contact support.
             </Text>
           </View>
 

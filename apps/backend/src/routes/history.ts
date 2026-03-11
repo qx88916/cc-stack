@@ -28,6 +28,7 @@ function toRideResponse(ride: any, driverDoc?: any) {
     currency: r.currency || 'USD',
     distanceKm: r.distanceKm,
     durationMinutes: r.durationMinutes,
+    paymentMethod: r.paymentMethod || 'cash',
     driver,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
