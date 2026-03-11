@@ -100,7 +100,7 @@ adminRouter.get('/users/:id', async (req: AuthReq, res) => {
     }
 
     // Get ride count and stats
-    let rideStats = null;
+    let rideStats: Record<string, unknown> | null = null;
     if (user.role === 'passenger') {
       const rides = await RideModel.find({ passengerId: id })
         .sort({ createdAt: -1 })
