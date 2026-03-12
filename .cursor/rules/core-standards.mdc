@@ -48,22 +48,19 @@ FijiCabConnect is a comprehensive cab booking platform for Fiji with driver, pas
 - **Touch Targets:** Minimum 44px for interactive elements
 - **Test ALL breakpoints** before marking complete
 
-## 🎨 ICONS & SVG ASSETS
+## 🎨 ICONS & ASSETS
 
 **MANDATORY:**
 
 - **NEVER** use AI-generated icons or placeholder AI icon services
-- **ALWAYS** use standard SVG files - create or source from the project theme
-- **Reference** existing project icons (e.g. `@/assets/icons/`, design system) for consistency
-- Store icons as `.svg` files in the designated assets folder (e.g. `assets/icons/`)
-- SVG icons must be theme-aware where applicable (e.g. `currentColor`, CSS variables)
-- Use semantic, accessible markup for inline SVG (e.g. `<svg role="img" aria-hidden="true">` or proper `aria-label`)
+- **NEVER** use inline emoji or Unicode symbols as primary UI icons
+- **Reference** existing project icons (`@/assets/icons/`, `constants/index.ts`) for consistency
 
-**NEVER ALLOWED:**
+**PLATFORM-SPECIFIC RULES:**
 
-- AI icon APIs or AI-generated icon assets
-- Inline emoji or Unicode symbols as primary UI icons
-- Raster images (PNG/JPG) for UI icons when SVG is available
+- **React Native (passenger/driver):** Icons used with `<Image source={}>` MUST be `.png`. SVGs via `react-native-svg-transformer` are React components, NOT image assets — they are incompatible with `<Image source={}>`. Always provide `.png` for new icons.
+- **Next.js (admin):** Prefer SVG files. Use `<Image>` or inline SVG as appropriate.
+- **All new icons** must be registered in `constants/index.ts` with the `.png` import for RN apps.
 
 ## 🚫 NEVER ALLOWED
 
@@ -79,7 +76,7 @@ FijiCabConnect is a comprehensive cab booking platform for Fiji with driver, pas
 
 **Don't:** AI icons · relative imports · `any` · mock data · hardcoded secrets · unvalidated input · missing error boundaries · temporary fixes · proactive docs
 
-**Do:** Standard SVG icons (theme-aware) · absolute imports (`@/`) · strict types · real backend · env vars · validate all input · error handling · production-ready only · mobile-first responsive
+**Do:** PNG icons for RN `<Image>`, SVG for admin · absolute imports (`@/`) · strict types · real backend · env vars · validate all input · error handling · production-ready only · mobile-first responsive
 
 ## 📋 EXISTING CODEBASE (When Touching Files)
 
@@ -87,5 +84,5 @@ When modifying code that currently violates standards, migrate toward the rule i
 
 - **Relative imports** (`../`, `./`) → Prefer absolute (`@/`) where path aliases exist; otherwise leave and avoid adding new relative imports.
 - **`any` types** → Replace with proper types or `unknown` + guards when editing that file.
-- **PNG UI icons** (`assets/icons/*.png`) → Prefer SVG when adding or replacing icons in that screen; full migration can be incremental.
-- **New code** → Must follow all standards (no new `any`, no new relative imports in apps with aliases, no new PNG for UI icons).
+- **PNG UI icons** → In React Native apps, `.png` is required for `<Image source={}>`. Do NOT migrate to `.svg` unless also changing the rendering to use SVG components.
+- **New code** → Must follow all standards (no new `any`, no new relative imports in apps with aliases).

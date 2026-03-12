@@ -1,0 +1,45 @@
+---
+description: Icon and asset management rules for React Native / Expo apps
+globs: apps/passenger/**/*.{ts,tsx}, apps/driver/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# React Native Asset & Icon Rules
+
+## SVG vs PNG — Know the Difference
+
+This project uses `react-native-svg-transformer` in Metro config. This means:
+
+- **`.svg` files** are treated as **React components** (source), NOT image assets
+- **`.png` files** are treated as **image assets** (used with `<Image source={...} />`)
+
+These two formats are **NOT interchangeable**.
+
+## When Adding New Icons
+
+1. **Check `constants/index.ts`** — all icons are imported as `.png` and used via `<Image source={icons.xxx} />`
+2. **Always provide a `.png` file** for any new icon added to `assets/icons/`
+3. **Optionally** add an `.svg` version if the icon will also be used as a component
+
+```tsx
+// ❌ WRONG — SVG imported as image asset will break the build
+import briefcase from "@/assets/icons/briefcase.svg";
+<Image source={briefcase} />  // CRASH: SVG is a component, not an asset
+
+// ✅ CORRECT — PNG imported as image asset
+import briefcase from "@/assets/icons/briefcase.png";
+<Image source={briefcase} tintColor="#000" />
+```
+
+## Icon Checklist (Before Committing)
+
+- [ ] New icon has a `.png` file in `assets/icons/`
+- [ ] Import in `constants/index.ts` uses `.png` extension
+- [ ] Icon is exported in the `icons` object in `constants/index.ts`
+- [ ] If replacing an emoji, use `<Image source={icons.xxx} />` not inline text
+
+## Never Do
+
+- **NEVER** import `.svg` as `<Image source={}>` — it will fail at bundle time
+- **NEVER** add icons to `constants/index.ts` without the corresponding `.png` file existing
+- **NEVER** assume `.svg` and `.png` are interchangeable in React Native

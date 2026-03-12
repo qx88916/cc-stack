@@ -1,30 +1,40 @@
 ---
-description: React Native standards for passenger app
-globs: apps/passenger/**/*.{tsx,ts,jsx,js}
+description: React Native standards for passenger and driver apps
+globs: apps/{passenger,driver}/**/*.{tsx,ts,jsx,js}
 alwaysApply: false
 ---
 
 # React Native Standards
 
+## API Calls — Use `fetchAPI` (MANDATORY)
+
+All HTTP requests MUST use `fetchAPI` from `@/lib/fetch`. Never use raw `fetch()`.
+
+`fetchAPI` provides: auto JWT injection, 401 token refresh, retry logic, centralized error handling.
+
+```tsx
+// ❌ BAD — raw fetch, no auth, no retry, no error handling
+const res = await fetch(`${API_URL}/ride/history`);
+const data = await res.json();
+
+// ✅ GOOD — fetchAPI handles auth, retries, and errors
+import { fetchAPI } from "@/lib/fetch";
+const { data } = await fetchAPI("/(api)/ride/history");
+```
+
 ## Component Structure
 
 ```tsx
-// ✅ GOOD - Functional component with TypeScript
 interface BookingCardProps {
   booking: Booking;
   onPress: (id: string) => void;
 }
 
-export const BookingCard: React.FC<BookingCardProps> = ({ 
-  booking, 
-  onPress 
-}) => {
-  return (
-    <Pressable onPress={() => onPress(booking.id)}>
-      <Text>{booking.destination}</Text>
-    </Pressable>
-  );
-};
+export const BookingCard: React.FC<BookingCardProps> = ({ booking, onPress }) => (
+  <Pressable onPress={() => onPress(booking.id)}>
+    <Text>{booking.destination}</Text>
+  </Pressable>
+);
 ```
 
 ## State Management
@@ -37,34 +47,12 @@ user.name = 'New Name';
 setUser(prev => ({ ...prev, name: 'New Name' }));
 ```
 
-## API Calls
-
-```tsx
-// ✅ GOOD - Error handling + loading states
-const [loading, setLoading] = useState(false);
-const [error, setError] = useState<string | null>(null);
-
-const fetchData = async () => {
-  setLoading(true);
-  setError(null);
-  try {
-    const data = await api.get('/bookings');
-    setBookings(data);
-  } catch (err) {
-    setError('Failed to load bookings');
-    logger.error('API error', err);
-  } finally {
-    setLoading(false);
-  }
-};
-```
-
 ## Required Practices
 
-- Use React Native Paper or NativeBase for UI
+- Use NativeWind (Tailwind) for styling
 - Platform-specific code with `Platform.select`
 - Handle keyboard avoiding views
 - Implement pull-to-refresh
 - Add loading and error states
 - Optimize FlatList with `getItemLayout`
-- Test on both iOS and Android
+- Icons: use `<Image source={icons.xxx} />` with PNG assets from `constants/index.ts`

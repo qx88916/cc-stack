@@ -51,6 +51,31 @@ const apiKey = process.env.API_KEY;
 if (!apiKey) throw new Error('API_KEY not configured');
 ```
 
+## External Services — Fail Fast (MANDATORY)
+
+Never silently swallow failures from email, SMS, or payment providers. If a service call fails, the caller must know.
+
+```typescript
+// ❌ BAD — silent failure, caller thinks email was sent
+if (!apiKey) {
+  console.log('No API key, skipping email');
+  return; // caller has no idea email wasn't sent
+}
+
+// ✅ GOOD — throw so caller can handle it
+if (!apiKey || apiKey === 'your_placeholder_here') {
+  throw new Error('Email provider not configured');
+}
+```
+
+In development/test without keys, log the OTP/token to console but make it obvious. In production, always throw.
+
+## Deployment
+
+- Use multi-stage Dockerfiles (builder stage with devDeps for `tsc`, final stage with prod deps only)
+- `CMD` must be `node dist/index.js`, never `npm run dev`
+- Backend reads `PORT` from env (Railway sets it automatically)
+
 ## Required Practices
 
 - Use async/await over callbacks
