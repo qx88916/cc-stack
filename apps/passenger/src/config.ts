@@ -11,7 +11,7 @@
 
 const PRODUCTION_API_URL =
   (typeof process !== "undefined" && process.env?.EXPO_PUBLIC_PRODUCTION_API_URL) ||
-  "https://reidehail-backend.onrender.com";
+  "https://api.fijicabconnect.com";
 
 const getBaseUrl = (): string => {
   const envUrl = typeof process !== "undefined" && process.env?.EXPO_PUBLIC_API_URL;

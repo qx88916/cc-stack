@@ -12,12 +12,15 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.fijicabconnect.com"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://reidehail-backend.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://api.fijicabconnect.com"
       }
     }
   },
