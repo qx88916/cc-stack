@@ -1,0 +1,15 @@
+# Clean install (from repo root):
+cd apps/driver && rm -rf node_modules && npm install
+cd apps/passenger && rm -rf node_modules && npm install
+
+# Validate:
+cd apps/driver && npx expo-doctor@latest && npx tsc --noEmit
+cd apps/passenger && npx expo-doctor@latest
+
+# EAS build (Android APK for testing):
+cd apps/driver && eas build --platform android --profile preview --non-interactive
+cd apps/passenger && eas build --platform android --profile preview --non-interactive
+
+# EAS build (Android AAB for production):
+cd apps/driver && eas build --platform android --profile production --non-interactive
+cd apps/passenger && eas build --platform android --profile production --non-interactive

@@ -3,6 +3,7 @@
  * Do NOT import this when running in Expo Go - expo-notifications push
  * was removed from Expo Go in SDK 53.
  */
+import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
@@ -46,7 +47,9 @@ export default function PushTokenRegistrar() {
         });
       }
 
-      const tokenData = await Notifications.getExpoPushTokenAsync();
+      const tokenData = await Notifications.getExpoPushTokenAsync({
+        projectId: Constants.expoConfig?.extra?.eas?.projectId,
+      });
       const pushToken = tokenData.data;
 
       try {

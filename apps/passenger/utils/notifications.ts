@@ -3,6 +3,7 @@
  * Registers for Expo push tokens and sends them to the backend.
  */
 
+import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { fetchAPI } from '@/lib/fetch';
@@ -35,7 +36,9 @@ export async function registerForPushNotifications(
   if (finalStatus !== 'granted') return null;
 
   try {
-    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const tokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: Constants.expoConfig?.extra?.eas?.projectId,
+    });
     const pushToken = tokenData.data;
 
     await fetchAPI('/user/push-token', {

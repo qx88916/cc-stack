@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { Audio } from "expo-av";
+import { createAudioPlayer, setAudioModeAsync, AudioPlayer } from "expo-audio";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useSocket } from "@/contexts/SocketContext";
@@ -126,7 +126,7 @@ const Home = () => {
   const [timeoutRemaining, setTimeoutRemaining] = useState(30);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const soundRef = useRef<Audio.Sound | null>(null);
+  const playerRef = useRef<AudioPlayer | null>(null);
 
   const headers = {
     "Content-Type": "application/json",
@@ -135,23 +135,24 @@ const Home = () => {
 
   const playRideSound = async () => {
     try {
-      await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: "https://www.soundjay.com/buttons/sounds/beep-01a.mp3" },
-        { shouldPlay: true, volume: 1.0 }
-      );
-      soundRef.current = sound;
+      await setAudioModeAsync({ playsInSilentMode: true });
+      const player = createAudioPlayer({
+        uri: "https://www.soundjay.com/buttons/sounds/beep-01a.mp3",
+      });
+      player.volume = 1.0;
+      playerRef.current = player;
+      player.play();
     } catch {
       // Non-critical; vibration still fires
     }
   };
 
-  const stopRideSound = async () => {
+  const stopRideSound = () => {
     try {
-      if (soundRef.current) {
-        await soundRef.current.stopAsync();
-        await soundRef.current.unloadAsync();
-        soundRef.current = null;
+      if (playerRef.current) {
+        playerRef.current.pause();
+        playerRef.current.release();
+        playerRef.current = null;
       }
     } catch {
       // ignore
@@ -298,7 +299,7 @@ const Home = () => {
     if (!incomingRide) return;
     setAccepting(true);
     clearRideTimeout();
-    await stopRideSound();
+    stopRideSound();
     try {
       const res = await fetch(
         `${apiBaseUrl}/driver/ride/${incomingRide.rideId}/accept`,
@@ -330,7 +331,7 @@ const Home = () => {
     if (!incomingRide) return;
     setRejecting(true);
     clearRideTimeout();
-    await stopRideSound();
+    stopRideSound();
     try {
       await fetch(`${apiBaseUrl}/driver/ride/${incomingRide.rideId}/reject`, {
         method: "POST",

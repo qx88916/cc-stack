@@ -1,58 +1,72 @@
 ---
-description: React Native standards for passenger and driver apps
+description: React Native standards for passenger and driver apps (Expo SDK 55)
 globs: apps/{passenger,driver}/**/*.{tsx,ts,jsx,js}
 alwaysApply: false
 ---
 
-# React Native Standards
+# React Native Standards (Expo SDK 55)
+
+## SDK Version Matrix
+
+| Component | Version |
+|---|---|
+| Expo SDK | 55 |
+| React | 19.2.0 |
+| React Native | 0.83.2 |
+| Android Target API | 36 |
+| New Architecture | Mandatory (cannot be disabled) |
+
+## SDK 55 Specifics
+
+- New Architecture is mandatory — all code must be New Arch compatible
+- Reanimated v4 — `react-native-reanimated/plugin` must be LAST in babel plugins; do NOT add `react-native-worklets/plugin` separately (bundled inside reanimated)
+- Audio → `expo-audio` only (`createAudioPlayer`, `useAudioPlayer`, `setAudioModeAsync`). `expo-av` is deprecated
+- Notifications → always pass `projectId` to `getExpoPushTokenAsync()` via `Constants.expoConfig?.extra?.eas?.projectId`
+- Edge-to-edge mandatory on Android — use `react-native-safe-area-context`
+- File system → use `expo-file-system/next` API, avoid legacy patterns
+- Do NOT add `newArchEnabled` or `edgeToEdgeEnabled` to `app.json` — both are mandatory defaults
 
 ## API Calls — Use `fetchAPI` (MANDATORY)
 
-All HTTP requests MUST use `fetchAPI` from `@/lib/fetch`. Never use raw `fetch()`.
+All HTTP requests MUST use `fetchAPI` from `@/lib/fetch`. Never raw `fetch()`.
 
-`fetchAPI` provides: auto JWT injection, 401 token refresh, retry logic, centralized error handling.
+Provides: auto JWT injection, 401 token refresh, retry logic, centralized error handling.
 
 ```tsx
-// ❌ BAD — raw fetch, no auth, no retry, no error handling
+// ❌ raw fetch — no auth, no retry
 const res = await fetch(`${API_URL}/ride/history`);
-const data = await res.json();
 
-// ✅ GOOD — fetchAPI handles auth, retries, and errors
+// ✅ fetchAPI
 import { fetchAPI } from "@/lib/fetch";
 const { data } = await fetchAPI("/(api)/ride/history");
 ```
 
-## Component Structure
+## Component Patterns
 
-```tsx
-interface BookingCardProps {
-  booking: Booking;
-  onPress: (id: string) => void;
-}
-
-export const BookingCard: React.FC<BookingCardProps> = ({ booking, onPress }) => (
-  <Pressable onPress={() => onPress(booking.id)}>
-    <Text>{booking.destination}</Text>
-  </Pressable>
-);
-```
-
-## State Management
-
-```tsx
-// ❌ BAD - Direct state mutation
-user.name = 'New Name';
-
-// ✅ GOOD - Immutable update
-setUser(prev => ({ ...prev, name: 'New Name' }));
-```
-
-## Required Practices
-
-- Use NativeWind (Tailwind) for styling
-- Platform-specific code with `Platform.select`
+- Named exports with typed props interfaces
+- NativeWind (Tailwind) for styling
+- Platform-specific code via `Platform.select`
 - Handle keyboard avoiding views
-- Implement pull-to-refresh
-- Add loading and error states
-- Optimize FlatList with `getItemLayout`
-- Icons: use `<Image source={icons.xxx} />` with PNG assets from `constants/index.ts`
+- Pull-to-refresh on lists
+- Loading + error states on all async screens
+- FlatList: use `getItemLayout` for fixed-height items
+- Icons: `<Image source={icons.xxx} />` with PNG from `constants/index.ts`
+- Immutable state updates: `setUser(prev => ({ ...prev, name }))` — never mutate directly
+
+## Dependencies
+
+- Install with `npx expo install <pkg>` — NEVER `npm install` for Expo packages
+- All Expo packages MUST use `^55.x` or `~55.x` versioning
+- Check `bundledNativeModules.json` for pinned versions before adding native libs
+- Keep `reanimated`, `screens`, `gesture-handler`, `safe-area-context` at bundled versions
+- Prefer New Architecture-compatible libraries (Fabric / TurboModules)
+- Run `npx expo-doctor@latest` after any dependency change
+- Driver and passenger apps MUST share identical versions for common packages
+- Lock files (`package-lock.json`) MUST be committed
+
+## Android Build
+
+- `expo-build-properties` plugin manages `compileSdkVersion`, `targetSdkVersion`, `minSdkVersion`
+- Target API 36+ for Play Store compliance
+- EAS CLI >= 18.0.0
+- `eas update` requires `--environment` flag

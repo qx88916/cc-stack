@@ -8,65 +8,47 @@ alwaysApply: false
 
 ## Endpoint Naming
 
-```
-✅ GOOD:
-GET    /api/v1/bookings
-POST   /api/v1/bookings
-GET    /api/v1/bookings/:id
-PUT    /api/v1/bookings/:id
-DELETE /api/v1/bookings/:id
+RESTful resource naming with version prefix:
 
-❌ BAD:
-GET /getBookings
-POST /createBooking
-GET /booking_detail
+```
+GET    /api/v1/bookings          — list (paginated)
+POST   /api/v1/bookings          — create
+GET    /api/v1/bookings/:id      — read
+PUT    /api/v1/bookings/:id      — update
+DELETE /api/v1/bookings/:id      — delete
 ```
 
-## Response Format
+Never use verb-based names (`/getBookings`, `/createBooking`).
+
+## Response Envelope
+
+All responses follow this structure:
 
 ```json
-// ✅ GOOD - Consistent structure
 {
   "success": true,
-  "data": {
-    "id": "123",
-    "status": "confirmed"
-  },
-  "meta": {
-    "timestamp": "2026-02-15T16:00:00Z"
-  }
+  "data": { "id": "123", "status": "confirmed" },
+  "meta": { "timestamp": "2026-02-15T16:00:00Z" }
 }
+```
 
-// ✅ GOOD - Error response
+Errors:
+
+```json
 {
   "success": false,
   "error": {
     "code": "VALIDATION_ERROR",
     "message": "Invalid phone number",
-    "details": {
-      "field": "phone",
-      "reason": "Must be 7 digits"
-    }
+    "details": { "field": "phone", "reason": "Must be 7 digits" }
   }
 }
 ```
 
-## Status Codes
+## Requirements
 
-- `200` - OK (successful GET/PUT)
-- `201` - Created (successful POST)
-- `204` - No Content (successful DELETE)
-- `400` - Bad Request (validation error)
-- `401` - Unauthorized (not authenticated)
-- `403` - Forbidden (not authorized)
-- `404` - Not Found
-- `429` - Too Many Requests (rate limited)
-- `500` - Internal Server Error
-
-## Required
-
-- Version all APIs (`/api/v1/`)
-- Implement pagination for lists
-- Add rate limiting
-- Return proper HTTP status codes
-- Use consistent error format
+- Version all endpoints (`/api/v1/`)
+- Paginate list endpoints (cursor or offset-based)
+- Rate limit public endpoints
+- Correct HTTP status codes (201 create, 204 delete, 4xx client errors)
+- Consistent error envelope on all failure responses

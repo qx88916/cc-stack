@@ -6,23 +6,22 @@ alwaysApply: false
 
 # Database Standards
 
-## Schema Design
+## Schema Conventions
+
+- Required fields on all models: `createdAt`, `updatedAt` timestamps
+- Soft deletes via `deletedAt` field — never hard-delete user data
+- Index all frequently queried and foreign-key fields
+- Geospatial queries: use `2dsphere` index on location fields
 
 ```javascript
-// ✅ GOOD - Proper indexes and constraints
 const BookingSchema = new Schema({
-  passengerId: { 
-    type: ObjectId, 
-    ref: 'User', 
-    required: true,
-    index: true 
-  },
+  passengerId: { type: ObjectId, ref: 'User', required: true, index: true },
   pickupLocation: {
     type: { type: String, enum: ['Point'], required: true },
     coordinates: { type: [Number], required: true }
   },
-  status: { 
-    type: String, 
+  status: {
+    type: String,
     enum: ['pending', 'confirmed', 'completed', 'cancelled'],
     default: 'pending',
     index: true
@@ -30,49 +29,15 @@ const BookingSchema = new Schema({
   createdAt: { type: Date, default: Date.now, index: true }
 });
 
-// Add geospatial index for location queries
 BookingSchema.index({ pickupLocation: '2dsphere' });
 ```
 
-## Query Optimization
+## Query Rules
 
-```javascript
-// ❌ BAD - N+1 query problem
-const bookings = await Booking.find();
-for (const booking of bookings) {
-  const driver = await Driver.findById(booking.driverId);
-}
-
-// ✅ GOOD - Use populate/join
-const bookings = await Booking.find()
-  .populate('driverId')
-  .select('pickupLocation status createdAt')
-  .limit(20);
-```
-
-## Validation
-
-```javascript
-// ✅ GOOD - Schema-level validation
-const UserSchema = new Schema({
-  phone: {
-    type: String,
-    required: true,
-    unique: true,
-    validate: {
-      validator: (v) => /^\d{7}$/.test(v),
-      message: 'Phone must be 7 digits'
-    }
-  }
-});
-```
-
-## Required Practices
-
-- Add indexes for frequently queried fields
-- Use transactions for multi-document operations
-- Implement soft deletes (deletedAt field)
-- Store timestamps (createdAt, updatedAt)
-- Validate data at schema level
-- Use connection pooling
+- Always `.select()` only needed fields — no unbounded projections
+- Use `.populate()` / joins for related data — never N+1 loops
+- Paginate with `.limit()` + `.skip()` or cursor-based pagination
+- Use transactions for multi-document writes
+- Validate at schema level (Mongoose validators / Zod)
 - Handle duplicate key errors gracefully
+- Use connection pooling

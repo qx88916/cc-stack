@@ -4,16 +4,13 @@
     "slug": "fijicabconnect-driver",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/logo-horizontal-white.svg",
     "scheme": "driverapp",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.fijicabconnect.driver"
     },
     "android": {
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.fijicabconnect.driver"
     },
@@ -24,6 +21,16 @@
     "plugins": [
       "expo-router",
       "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36,
+            "minSdkVersion": 24
+          }
+        }
+      ],
       [
         "expo-location",
         {
@@ -37,7 +44,6 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/logo-horizontal-white.svg",
           "color": "#f59e0b"
         }
       ],
@@ -46,7 +52,11 @@
         {
           "photosPermission": "FijiCabConnect Driver accesses your photos to update your profile picture."
         }
-      ]
+      ],
+      "expo-image",
+      "expo-web-browser",
+      "expo-audio",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true

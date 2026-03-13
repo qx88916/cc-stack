@@ -1,154 +1,45 @@
 ---
-description: Admin panel development standards (React/Next.js)
+description: Admin panel standards (Next.js)
 globs: apps/admin/**/*.{tsx,ts,jsx,js}
 alwaysApply: false
 ---
 
-# Admin Panel Standards
+# Admin Panel Standards (Next.js)
 
-## Component Structure
+## Tech Stack
 
-```tsx
-// ✅ GOOD - Admin component with TypeScript
-interface DriverTableProps {
-  drivers: Driver[];
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-}
+- Next.js with App Router
+- UI components: shadcn/ui (or similar)
+- Forms: react-hook-form + Zod validation
+- Charts: Recharts or Chart.js
+- Icons: SVG preferred — use `<Image>` or inline SVG
 
-export const DriverTable: React.FC<DriverTableProps> = ({ 
-  drivers, 
-  onEdit, 
-  onDelete 
-}) => {
-  return (
-    <DataTable
-      columns={columns}
-      data={drivers}
-      pagination
-      responsive
-    />
-  );
-};
-```
+## Responsive Design
 
-## Form Handling
+- Mobile-first: design for 320px, enhance up
+- Breakpoints: 320px (mobile) → 768px (tablet) → 1024px (desktop)
+- Touch targets: minimum 44px for interactive elements
 
-```tsx
-// ✅ GOOD - Validated form with error handling
-const BookingForm: React.FC = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm({
-    resolver: zodResolver(bookingSchema)
-  });
+## Required Patterns
 
-  const onSubmit = async (data: BookingInput) => {
-    try {
-      await api.post('/bookings', data);
-      toast.success('Booking created');
-      router.push('/bookings');
-    } catch (err) {
-      toast.error('Failed to create booking');
-      logger.error('Form submission error', err);
-    }
-  };
+- Data tables with sorting, filtering, search, and pagination
+- Loading states on all async operations
+- Success / error toasts for user actions
+- Confirmation modals for destructive actions (delete, ban, etc.)
+- Role-based access control (RBAC) on routes and actions
+- Audit logs for admin mutations
+- CSV / Excel export for data tables
+- Real-time updates via WebSocket or polling where needed
 
-  return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Input 
-        {...register('pickupLocation')} 
-        error={errors.pickupLocation?.message}
-      />
-      <Button type="submit">Create</Button>
-    </form>
-  );
-};
-```
+## Forms
 
-## Data Tables
+- All forms validated with Zod schemas
+- Inline field-level error messages
+- Disable submit button during async operations
+- Redirect + success toast on success; error toast on failure
 
-```tsx
-// ✅ GOOD - Data table with actions and pagination
-const columns = [
-  { field: 'id', headerName: 'ID', width: 100 },
-  { field: 'name', headerName: 'Driver Name', width: 200 },
-  { field: 'phone', headerName: 'Phone', width: 150 },
-  { field: 'status', headerName: 'Status', width: 120,
-    renderCell: (params) => (
-      <StatusBadge status={params.value} />
-    )
-  },
-  { field: 'actions', headerName: 'Actions', width: 150,
-    renderCell: (params) => (
-      <ActionButtons 
-        onEdit={() => handleEdit(params.row.id)}
-        onDelete={() => handleDelete(params.row.id)}
-      />
-    )
-  }
-];
-```
+## Components
 
-## Dashboard Metrics
-
-```tsx
-// ✅ GOOD - Dashboard card with real-time data
-const MetricsCard: React.FC<{ title: string; value: number }> = ({ 
-  title, 
-  value 
-}) => {
-  const [data, setData] = useState(value);
-  
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const updated = await fetchMetric(title);
-      setData(updated);
-    }, 30000); // Refresh every 30 seconds
-    
-    return () => clearInterval(interval);
-  }, [title]);
-
-  return (
-    <Card>
-      <CardHeader>{title}</CardHeader>
-      <CardContent>
-        <Typography variant="h3">{data}</Typography>
-      </CardContent>
-    </Card>
-  );
-};
-```
-
-## Role-Based Access
-
-```tsx
-// ✅ GOOD - Protected admin routes
-const ProtectedRoute: React.FC<{ 
-  children: React.ReactNode;
-  requiredRole: 'admin' | 'superadmin';
-}> = ({ children, requiredRole }) => {
-  const { user, loading } = useAuth();
-  
-  if (loading) return <LoadingSpinner />;
-  
-  if (!user || user.role !== requiredRole) {
-    return <Navigate to="/unauthorized" />;
-  }
-  
-  return <>{children}</>;
-};
-```
-
-## Required Practices
-
-- Use data tables with sorting/filtering (Material-UI, Ant Design, shadcn/ui)
-- Implement form validation with react-hook-form + Zod
-- Add loading states for all async operations
-- Show success/error toasts for user actions
-- Implement role-based access control (RBAC)
-- Add search and filters for data tables
-- Export data to CSV/Excel functionality
-- Implement audit logs for admin actions
-- Use charts for analytics (Recharts, Chart.js)
-- Optimize large data sets with pagination
-- Add confirmation modals for destructive actions
-- Implement real-time updates where needed (WebSocket/polling)
+- Typed props with interfaces — no `any`
+- Named exports: `export const DriverTable: React.FC<Props>`
+- Colocate related components, hooks, and types

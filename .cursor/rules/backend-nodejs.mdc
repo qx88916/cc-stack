@@ -8,79 +8,43 @@ alwaysApply: false
 
 ## Error Handling
 
-```typescript
-// ❌ BAD - Silent failure
-try {
-  await dbQuery();
-} catch (e) {}
+- Never silently catch exceptions — always log and re-throw or return error response
+- Structured logging (Winston / Pino) with context: `logger.error('msg', { error, userId })`
+- Custom error classes for domain errors: `DatabaseError`, `ValidationError`, etc.
 
-// ✅ GOOD - Proper logging and user-friendly error
-try {
-  await dbQuery();
-} catch (e) {
-  logger.error('Database query failed', { error: e });
-  throw new DatabaseError('Unable to fetch data', { cause: e });
-}
+## External Services — Fail Fast
+
+Never silently swallow failures from email, SMS, or payment providers.
+
+```typescript
+// ❌ silent skip — caller doesn't know email wasn't sent
+if (!apiKey) { console.log('No key, skipping'); return; }
+
+// ✅ throw so caller can handle it
+if (!apiKey) throw new Error('Email provider not configured');
 ```
+
+In dev without keys: log OTP/token to console explicitly. In production: always throw.
 
 ## Input Validation
 
-```typescript
-// ❌ BAD - No validation
-app.post('/api/booking', async (req, res) => {
-  const booking = await createBooking(req.body);
-  res.json(booking);
-});
+- Validate with schema (Zod / Joi) in middleware BEFORE route handler
+- Sanitize all inputs before DB writes
 
-// ✅ GOOD - Validated inputs
-app.post('/api/booking', validate(bookingSchema), async (req, res) => {
-  const sanitized = sanitizeInput(req.body);
-  const booking = await createBooking(sanitized);
-  res.json(booking);
-});
-```
+## Auth & Security
 
-## Environment Variables
-
-```typescript
-// ❌ BAD - Hardcoded
-const apiKey = 'sk_live_12345';
-
-// ✅ GOOD - Environment variable with validation
-const apiKey = process.env.API_KEY;
-if (!apiKey) throw new Error('API_KEY not configured');
-```
-
-## External Services — Fail Fast (MANDATORY)
-
-Never silently swallow failures from email, SMS, or payment providers. If a service call fails, the caller must know.
-
-```typescript
-// ❌ BAD — silent failure, caller thinks email was sent
-if (!apiKey) {
-  console.log('No API key, skipping email');
-  return; // caller has no idea email wasn't sent
-}
-
-// ✅ GOOD — throw so caller can handle it
-if (!apiKey || apiKey === 'your_placeholder_here') {
-  throw new Error('Email provider not configured');
-}
-```
-
-In development/test without keys, log the OTP/token to console but make it obvious. In production, always throw.
+- JWT validation on all protected routes
+- Rate limit public endpoints
+- Env vars for all config — fail on startup if required vars are missing
 
 ## Deployment
 
-- Use multi-stage Dockerfiles (builder stage with devDeps for `tsc`, final stage with prod deps only)
-- `CMD` must be `node dist/index.js`, never `npm run dev`
+- Multi-stage Dockerfile: builder stage (devDeps + `tsc`) → final stage (prod deps only)
+- `CMD`: `node dist/index.js` — never `npm run dev`
 - Backend reads `PORT` from env (Railway sets it automatically)
 
-## Required Practices
+## Practices
 
-- Use async/await over callbacks
-- Implement proper logging (Winston, Pino)
-- Rate limiting on all public endpoints
-- JWT token validation on protected routes
+- async/await over callbacks
 - Database connection pooling
-- Graceful shutdown handlers
+- Graceful shutdown handlers (`SIGTERM`, `SIGINT`)

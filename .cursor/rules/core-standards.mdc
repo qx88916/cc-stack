@@ -1,88 +1,36 @@
 ---
-description: Core coding standards for FijiCabConnect project
+description: Project-wide standards for FijiCabConnect
 alwaysApply: true
 ---
 
-# FijiCabConnect - Core Standards
+# FijiCabConnect
 
-## 🎯 PROJECT CONTEXT
-FijiCabConnect is a comprehensive cab booking platform for Fiji with driver, passenger, and admin applications.
+Cab booking platform for Fiji — driver app (Expo), passenger app (Expo), admin panel (Next.js), Node.js backend.
 
-## 🔐 ZERO TOLERANCE SECURITY
+## TypeScript & Imports
 
-**MANDATORY (NO EXCEPTIONS):**
+- Strict mode, zero `any` types — use `unknown` + type guards
+- Absolute imports only: `@/components`, `@/lib`, `@/utils`
+- Do NOT modify `tsconfig.json` or `next.config.js` without explicit permission
 
-1. **NEVER** commit secrets, API keys, or credentials
-2. **ALWAYS** use environment variables (`.env` files)
-3. **MANDATORY** input validation on ALL user inputs
-4. **REQUIRED** SQL injection prevention
-5. **ENFORCED** XSS protection with CSP headers
-6. **MANDATORY** CSRF protection on forms
-7. **REQUIRED** Authentication on protected endpoints
-8. **ENFORCED** Rate limiting on APIs
+## Security (Non-Negotiable)
 
-## 💎 CODE QUALITY
+- Secrets in `.env` only — never commit credentials
+- Validate ALL user inputs; sanitize before DB writes
+- Auth required on all protected endpoints
+- Rate limit public APIs
+- CSRF tokens on forms; CSP headers for XSS
 
-**STRICT REQUIREMENTS:**
+## Icons
 
-- **TypeScript Strict Mode** - Zero `any` types
-- **Absolute imports only** - `@/components`, not `../../`
-- **Zero TypeScript errors** - Must pass `tsc --noEmit`
-- **Zero ESLint errors** - Project ESLint compliance
-- **No temporary fixes** - Production-ready solutions only
-- **DO NOT modify** `tsconfig.json`, `next.config.js` without permission
+- **React Native apps:** `.png` only for `<Image source={}>` — SVGs are React components, NOT image assets
+- **Admin (Next.js):** prefer SVG
+- New icons → add file to `assets/icons/` AND register in `constants/index.ts`
 
-## 🏗️ FUNDAMENTAL PRINCIPLES
+## Prohibited
 
-- **DRY** - Don't Repeat Yourself
-- **KISS** - Keep It Simple
-- **SOLID** - Single Responsibility, Open/Closed, etc.
-- **YAGNI** - You Aren't Gonna Need It
-- **Fail Fast** - Validate early, throw immediately
-- **Immutability** - Prefer immutable data structures
-
-## 📱 RESPONSIVE DESIGN
-
-- **Mobile-First** - Design for 320px+, enhance up
-- **Breakpoints:** 320px (mobile), 768px (tablet), 1024px (desktop)
-- **Touch Targets:** Minimum 44px for interactive elements
-- **Test ALL breakpoints** before marking complete
-
-## 🎨 ICONS & ASSETS
-
-**MANDATORY:**
-
-- **NEVER** use AI-generated icons or placeholder AI icon services
-- **NEVER** use inline emoji or Unicode symbols as primary UI icons
-- **Reference** existing project icons (`@/assets/icons/`, `constants/index.ts`) for consistency
-
-**PLATFORM-SPECIFIC RULES:**
-
-- **React Native (passenger/driver):** Icons used with `<Image source={}>` MUST be `.png`. SVGs via `react-native-svg-transformer` are React components, NOT image assets — they are incompatible with `<Image source={}>`. Always provide `.png` for new icons.
-- **Next.js (admin):** Prefer SVG files. Use `<Image>` or inline SVG as appropriate.
-- **All new icons** must be registered in `constants/index.ts` with the `.png` import for RN apps.
-
-## 🚫 NEVER ALLOWED
-
-- Mock/static data - use real backend
-- Relative imports - absolute only
-- `any` types - strict typing required
-- Hardcoded values - use environment variables
-- Unvalidated inputs - validate everything
-- Missing error boundaries - required on components
-- Proactive documentation files (README, CHANGELOG, summary .md) unless explicitly requested
-
-## ✅ QUICK REFERENCE (Keep in Mind)
-
-**Don't:** AI icons · relative imports · `any` · mock data · hardcoded secrets · unvalidated input · missing error boundaries · temporary fixes · proactive docs
-
-**Do:** PNG icons for RN `<Image>`, SVG for admin · absolute imports (`@/`) · strict types · real backend · env vars · validate all input · error handling · production-ready only · mobile-first responsive
-
-## 📋 EXISTING CODEBASE (When Touching Files)
-
-When modifying code that currently violates standards, migrate toward the rule in the same change:
-
-- **Relative imports** (`../`, `./`) → Prefer absolute (`@/`) where path aliases exist; otherwise leave and avoid adding new relative imports.
-- **`any` types** → Replace with proper types or `unknown` + guards when editing that file.
-- **PNG UI icons** → In React Native apps, `.png` is required for `<Image source={}>`. Do NOT migrate to `.svg` unless also changing the rendering to use SVG components.
-- **New code** → Must follow all standards (no new `any`, no new relative imports in apps with aliases).
+- Mock / static data — always use real backend
+- Hardcoded config values — use env vars
+- `node_modules` hotfixes without a `patch-package` patch
+- Direct `android/` or `ios/` dir edits — use Expo config plugins
+- Package versions that drift from Expo-supported ranges
