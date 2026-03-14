@@ -7,9 +7,8 @@ import { images } from "@/constants";
 
 const Welcome = () => {
   useEffect(() => {
-    // Simulate splash delay - keep it snappy (2.5s feel better than 3s)
     const timer = setTimeout(() => {
-      router.replace("/(auth)/signup");
+      router.replace("/(auth)/login");
     }, 2500);
 
     return () => clearTimeout(timer);

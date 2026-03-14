@@ -338,13 +338,12 @@ authRouter.post('/request-password-reset', otpLimiter, async (req, res) => {
       return res.status(400).json({ message: 'Invalid email format' });
     }
     
-    // Check if user exists (but don't reveal if they don't for security)
+    // Check if user exists — product requirement: show "Email not registered" when not found
     const user = await UserModel.findOne({ email: emailNorm });
     if (!user) {
-      // Return success anyway to prevent email enumeration
-      return res.json({ success: true, message: 'If an account exists with this email, you will receive a reset code' });
+      return res.status(404).json({ message: 'Email not registered' });
     }
-    
+
     // Send password reset OTP
     await sendEmailOtp(emailNorm, 'password_reset');
     res.json({ success: true, message: 'Password reset code sent to your email' });

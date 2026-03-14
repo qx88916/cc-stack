@@ -1,6 +1,7 @@
 import { Link, router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
@@ -80,16 +81,25 @@ export default function Login() {
     else router.replace("/(root)/(tabs)/home");
   }, [form, login]);
 
-  return (
-    <ScrollView className="flex-1 bg-white" keyboardShouldPersistTaps="handled">
-      <View className="flex-1 bg-white">
-        <View className="relative w-full h-[200px] bg-primary-500 justify-center items-center">
-          <Text className="text-5xl text-white font-JakartaBold tracking-tight">
-            Cab Connect
-          </Text>
-        </View>
+  const insets = useSafeAreaInsets();
 
-        <View className="px-6 py-8 -mt-6 bg-white rounded-t-3xl">
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1"
+    >
+      <ScrollView className="flex-1 bg-white" keyboardShouldPersistTaps="handled" bounces={false}>
+        <View className="flex-1 bg-white">
+          <View
+            className="w-full bg-primary-500 justify-center items-center min-h-[120px]"
+            style={{ paddingTop: insets.top + 20, paddingBottom: 40 }}
+          >
+            <Text className="text-3xl text-white font-JakartaBold tracking-tight" numberOfLines={1}>
+              Cab Connect
+            </Text>
+          </View>
+
+          <View className="px-6 py-8 -mt-5 bg-white rounded-t-3xl">
           <Text className="text-2xl font-JakartaBold text-gray-900 mb-1">
             Welcome Back
           </Text>
@@ -205,5 +215,6 @@ export default function Login() {
         </View>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

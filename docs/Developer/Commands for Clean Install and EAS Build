@@ -1,15 +1,55 @@
-# Clean install (from repo root):
+# Clean install (from repo root)
+
+**PowerShell (Windows):**
+```powershell
+cd apps/driver; if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }; npm install
+cd apps/passenger; if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }; npm install
+```
+
+**Bash (Git Bash / WSL):**
+```bash
 cd apps/driver && rm -rf node_modules && npm install
 cd apps/passenger && rm -rf node_modules && npm install
+```
 
-# Validate:
+# Validate
+
+**PowerShell:**
+```powershell
+cd apps/driver; npx expo-doctor@latest; npx tsc --noEmit
+cd apps/passenger; npx expo-doctor@latest
+```
+
+**Bash:**
+```bash
 cd apps/driver && npx expo-doctor@latest && npx tsc --noEmit
 cd apps/passenger && npx expo-doctor@latest
+```
 
-# EAS build (Android APK for testing):
+# EAS build (Android APK for testing)
+
+**PowerShell:** (use `npx eas-cli` if `eas` is not in PATH)
+```powershell
+cd apps/driver; npx eas-cli build --platform android --profile preview --non-interactive
+cd apps/passenger; npx eas-cli build --platform android --profile preview --non-interactive
+```
+
+**Bash:**
+```bash
 cd apps/driver && eas build --platform android --profile preview --non-interactive
 cd apps/passenger && eas build --platform android --profile preview --non-interactive
+```
 
-# EAS build (Android AAB for production):
+# EAS build (Android AAB for production)
+
+**PowerShell:**
+```powershell
+cd apps/driver; npx eas-cli build --platform android --profile production --non-interactive
+cd apps/passenger; npx eas-cli build --platform android --profile production --non-interactive
+```
+
+**Bash:**
+```bash
 cd apps/driver && eas build --platform android --profile production --non-interactive
 cd apps/passenger && eas build --platform android --profile production --non-interactive
+```

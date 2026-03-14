@@ -1,6 +1,7 @@
 import { Link, router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
@@ -201,16 +202,25 @@ const ForgotPassword = () => {
     }
   }, [form]);
 
-  return (
-    <ScrollView className="flex-1 bg-white" keyboardShouldPersistTaps="handled">
-      <View className="flex-1 bg-white">
-        <View className="relative w-full h-[200px] bg-primary-500 justify-center items-center">
-          <Text className="text-5xl text-white font-JakartaBold tracking-tight">
-            Cab Connect
-          </Text>
-        </View>
+  const insets = useSafeAreaInsets();
 
-        <View className="px-6 py-8 -mt-6 bg-white rounded-t-3xl">
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1"
+    >
+      <ScrollView className="flex-1 bg-white" keyboardShouldPersistTaps="handled" bounces={false}>
+        <View className="flex-1 bg-white">
+          <View
+            className="w-full bg-primary-500 justify-center items-center"
+            style={{ paddingTop: insets.top + 24, paddingBottom: 48 }}
+          >
+            <Text className="text-4xl text-white font-JakartaBold tracking-tight">
+              Cab Connect
+            </Text>
+          </View>
+
+          <View className="px-6 py-8 -mt-6 bg-white rounded-t-3xl">
           {/* Step 1: Email Input */}
           {currentStep === "email" && (
             <>
@@ -401,6 +411,7 @@ const ForgotPassword = () => {
         </View>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 

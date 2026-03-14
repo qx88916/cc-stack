@@ -1,6 +1,7 @@
 import { Link, router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ReactNativeModal } from "react-native-modal";
 
 import CustomButton from "@/components/CustomButton";
@@ -222,16 +223,25 @@ const SignUp = () => {
     }
   };
 
-  return (
-    <ScrollView className="flex-1 bg-white" keyboardShouldPersistTaps="handled">
-      <View className="flex-1 bg-white">
-        <View className="relative w-full h-[200px] bg-primary-500 justify-center items-center">
-          <Text className="text-5xl text-white font-JakartaBold tracking-tight">
-            Cab Connect
-          </Text>
-        </View>
+  const insets = useSafeAreaInsets();
 
-        <View className="px-6 py-8 -mt-6 bg-white rounded-t-3xl">
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1"
+    >
+      <ScrollView className="flex-1 bg-white" keyboardShouldPersistTaps="handled" bounces={false}>
+        <View className="flex-1 bg-white">
+          <View
+            className="w-full bg-primary-500 justify-center items-center"
+            style={{ paddingTop: insets.top + 24, paddingBottom: 48 }}
+          >
+            <Text className="text-4xl text-white font-JakartaBold tracking-tight">
+              Cab Connect
+            </Text>
+          </View>
+
+          <View className="px-6 py-8 -mt-6 bg-white rounded-t-3xl">
           <Text className="text-3xl text-gray-900 font-JakartaBold mb-2">
             Create Your Account
           </Text>
@@ -339,36 +349,6 @@ const SignUp = () => {
             />
           </View>
 
-          <View className="flex-row justify-center items-center my-6 gap-x-3">
-            <View className="flex-1 h-[1px] bg-gray-200" />
-            <Text className="text-sm text-gray-400 font-JakartaMedium">Or continue with</Text>
-            <View className="flex-1 h-[1px] bg-gray-200" />
-          </View>
-
-          <View className="flex-row gap-3 mb-6">
-            <TouchableOpacity 
-              className="flex-1 flex-row items-center justify-center bg-white border border-gray-200 rounded-lg py-3" 
-              onPress={() => Alert.alert("Coming Soon", "Google sign-in will be available soon!")}
-              activeOpacity={0.7}
-            >
-              <Image source={icons.google} className="w-5 h-5 mr-2" resizeMode="contain" />
-              <Text className="font-JakartaSemiBold text-sm text-gray-700">Google</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              className="flex-1 flex-row items-center justify-center bg-white border border-gray-200 rounded-lg py-3" 
-              onPress={() => Alert.alert("Coming Soon", "Apple sign-in will be available soon!")}
-              activeOpacity={0.7}
-            >
-              <Image 
-                source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/1667px-Apple_logo_black.svg.png" }} 
-                className="w-5 h-5 mr-2" 
-                resizeMode="contain" 
-              />
-              <Text className="font-JakartaSemiBold text-sm text-gray-700">Apple</Text>
-            </TouchableOpacity>
-          </View>
-
           <View className="flex-row items-center my-4">
             <View className="flex-1 h-px bg-gray-300" />
             <Text className="mx-4 text-sm text-gray-500 font-JakartaMedium">OR</Text>
@@ -445,6 +425,7 @@ const SignUp = () => {
         </ReactNativeModal>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 

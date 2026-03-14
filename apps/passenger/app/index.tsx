@@ -10,7 +10,7 @@ export default function Index() {
   }
 
   if (!session) {
-    return <Redirect href="/(auth)/login" />;
+    return <Redirect href="/(auth)/welcome" />;
   }
 
   if (session.user.role === "admin") {
