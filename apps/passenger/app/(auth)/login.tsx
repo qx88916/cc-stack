@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
-import { icons } from "@/constants";
+import { icons, images } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { isValidEmail } from "@/utils/emailHelper";
 
@@ -91,12 +91,12 @@ export default function Login() {
       <ScrollView className="flex-1 bg-white" keyboardShouldPersistTaps="handled" bounces={false}>
         <View className="flex-1 bg-white">
           <View
-            className="w-full bg-primary-500 justify-center items-center min-h-[120px]"
+            className="w-full bg-primary-500 items-center justify-center"
             style={{ paddingTop: insets.top + 20, paddingBottom: 40 }}
           >
-            <Text className="text-3xl text-white font-JakartaBold tracking-tight" numberOfLines={1}>
-              Cab Connect
-            </Text>
+            <View style={{ width: 200, height: 50 }}>
+              <images.logoHorizontal width="100%" height="100%" />
+            </View>
           </View>
 
           <View className="px-6 py-8 -mt-5 bg-white rounded-t-3xl">

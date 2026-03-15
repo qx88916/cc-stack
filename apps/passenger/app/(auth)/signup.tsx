@@ -8,7 +8,7 @@ import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import OTPInput from "@/components/OTPInput";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
-import { icons } from "@/constants";
+import { icons, images } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { isValidEmail, suggestEmailDomain } from "@/utils/emailHelper";
 
@@ -233,12 +233,12 @@ const SignUp = () => {
       <ScrollView className="flex-1 bg-white" keyboardShouldPersistTaps="handled" bounces={false}>
         <View className="flex-1 bg-white">
           <View
-            className="w-full bg-primary-500 justify-center items-center"
-            style={{ paddingTop: insets.top + 24, paddingBottom: 48 }}
+            className="w-full bg-primary-500 items-center justify-center"
+            style={{ paddingTop: insets.top + 20, paddingBottom: 40 }}
           >
-            <Text className="text-4xl text-white font-JakartaBold tracking-tight">
-              Cab Connect
-            </Text>
+            <View style={{ width: 200, height: 50 }}>
+              <images.logoHorizontal width="100%" height="100%" />
+            </View>
           </View>
 
           <View className="px-6 py-8 -mt-6 bg-white rounded-t-3xl">

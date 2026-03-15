@@ -33,6 +33,20 @@ Last updated: Phase 1.1 complete (phone login/signup added)
 
 ---
 
+## Phase Next — Auth & UI Fixes
+
+| Change | Status | Files |
+| ------ | ------ | ----- |
+| Social login removed (Google / Apple OAuth) | ✅ DONE | `OAuth.tsx` exists but not imported anywhere — no UI entry point |
+| Phone authentication only (email + phone) | ✅ DONE | `login.tsx`, `phone-login.tsx`, `phone-signup.tsx` |
+| Auth screen headers replaced with logo image | ✅ DONE | `login.tsx`, `signup.tsx`, `phone-login.tsx`, `phone-signup.tsx` |
+| Phone input field fix (visible on all devices) | ✅ DONE | `components/InputField.tsx`, `phone-login.tsx`, `phone-signup.tsx` |
+| KeyboardAvoidingView added to phone auth screens | ✅ DONE | `phone-login.tsx`, `phone-signup.tsx` |
+| Safe area insets on all auth screen headers | ✅ DONE | `phone-login.tsx`, `phone-signup.tsx` |
+| `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` documented | ✅ DONE | `.env.example` |
+
+---
+
 ## Phase 2 Backlog (Do NOT build until Phase 1 ships)
 
 

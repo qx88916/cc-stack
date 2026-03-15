@@ -1,11 +1,12 @@
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
-import { icons } from "@/constants";
+import { icons, images } from "@/constants";
+import { COLORS } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function PhoneLogin() {
@@ -60,16 +61,25 @@ export default function PhoneLogin() {
     else router.replace("/(root)/(tabs)/home");
   }, [form, loginWithPhone]);
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <ScrollView className="flex-1 bg-white" keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1"
+    >
+    <ScrollView className="flex-1 bg-white" keyboardShouldPersistTaps="handled" bounces={false}>
       <View className="flex-1 bg-white">
-        <View className="relative w-full h-[200px] bg-primary-500 justify-center items-center">
-          <Text className="text-5xl text-white font-JakartaBold tracking-tight">
-            Cab Connect
-          </Text>
+        <View
+          className="w-full bg-primary-500 items-center justify-center"
+          style={{ paddingTop: insets.top + 20, paddingBottom: 40 }}
+        >
+          <View style={{ width: 200, height: 50 }}>
+            <images.logoHorizontal width="100%" height="100%" />
+          </View>
         </View>
 
-        <View className="px-6 py-8 -mt-6 bg-white rounded-t-3xl">
+        <View className="px-6 py-8 -mt-5 bg-white rounded-t-3xl">
           <Text className="text-2xl font-JakartaBold text-gray-900 mb-1">
             Login with Phone
           </Text>
@@ -98,25 +108,39 @@ export default function PhoneLogin() {
               Phone Number
             </Text>
             <View className="flex-row items-center mb-4">
-              <View className="bg-neutral-100 px-4 py-4 rounded-l-2xl border-2 border-r-0 border-neutral-200">
+              <View
+                className="bg-neutral-100 px-4 rounded-l-2xl border-2 border-r-0 justify-center"
+                style={{ height: 54, borderColor: errors.phone ? COLORS.danger : COLORS.neutral200 }}
+              >
                 <Text className="text-base font-JakartaBold text-gray-700">+679</Text>
               </View>
-              <InputField
-                label=""
+              <TextInput
                 placeholder="9123456"
                 keyboardType="phone-pad"
                 value={form.phone}
-                error={errors.phone}
                 onChangeText={(value) => {
                   const cleaned = value.replace(/\D/g, "").slice(0, 7);
                   setForm({ ...form, phone: cleaned });
                   if (errors.phone) setErrors({ ...errors, phone: "" });
                   if (backendError) setBackendError("");
                 }}
-                containerStyle="flex-1 mb-0"
-                inputStyle="rounded-l-none"
                 maxLength={7}
                 returnKeyType="next"
+                style={{
+                  flex: 1,
+                  height: 54,
+                  backgroundColor: "white",
+                  borderWidth: 2,
+                  borderColor: errors.phone ? COLORS.danger : COLORS.neutral200,
+                  borderLeftWidth: 0,
+                  borderTopRightRadius: 16,
+                  borderBottomRightRadius: 16,
+                  paddingHorizontal: 16,
+                  fontSize: 16,
+                  color: COLORS.neutral900,
+                  fontFamily: "Jakarta",
+                }}
+                placeholderTextColor={COLORS.neutral400}
               />
             </View>
             {errors.phone && (
@@ -176,5 +200,6 @@ export default function PhoneLogin() {
         </View>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

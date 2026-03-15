@@ -38,7 +38,7 @@ const InputField = ({
   };
 
   return (
-    <View className={`my-2 w-full relative ${className ?? ''}`}>
+    <View className={`my-2 relative ${className?.includes('flex-1') ? '' : 'w-full'} ${className ?? ''}`}>
       <View
         className={`flex flex-row justify-start items-center relative bg-white rounded-xl border-2 ${getBorderColor()} ${containerStyle}`}
       >
